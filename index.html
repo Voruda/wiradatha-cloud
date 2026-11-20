@@ -369,10 +369,15 @@
                 </button>
             </div>
 
-            <!-- Subtle Reset Link for Testing/Demo -->
-            <button onclick="openResetModal()" class="text-[11px] text-[#8E95A0] hover:text-[#C74B92] transition hidden sm:inline-flex items-center gap-1">
-                <span>Reset Data</span>
-            </button>
+            <div class="flex items-center gap-2 sm:gap-3">
+                <button type="button" onclick="showFinanceReport()"
+                    class="rounded-[10px] bg-[#C74B92] px-3 py-2 text-[11px] sm:text-[12px] font-semibold text-white hover:bg-[#B23D80] transition">
+                    Laporan Keuangan
+                </button>
+                <button onclick="openResetModal()" class="text-[11px] text-[#8E95A0] hover:text-[#C74B92] transition hidden sm:inline-flex items-center gap-1">
+                    <span>Reset Data</span>
+                </button>
+            </div>
         </div>
 
         <!-- ==================== 4 KPI SUMMARY CARDS ==================== -->
@@ -699,6 +704,73 @@
 
     </main>
 
+    <section id="finance-report-screen" class="hidden max-w-[1380px] w-full mx-auto px-4 sm:px-8 pt-5 pb-10 flex-1 space-y-5">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+            <button type="button" onclick="showMainScreen()"
+                class="inline-flex items-center gap-2 rounded-[10px] app-input px-3 py-2 text-[12px] font-semibold hover:opacity-80 transition">
+                <span aria-hidden="true">&larr;</span>
+                Kembali ke Ringkasan
+            </button>
+            <div class="inline-flex items-center gap-2 select-none">
+                <button id="report-previous-year-button" type="button" onclick="changeYear(-1)" aria-label="Tahun Sebelumnya"
+                    class="p-1 rounded hover:bg-black/5 dark:hover:bg-white/10 text-[#8D95A0] hover:text-[#C74B92] transition disabled:opacity-40 disabled:cursor-not-allowed">
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M10.5 3L5.5 8L10.5 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+                <h1 id="report-year-heading" class="text-[13.5px] sm:text-[14px] font-bold uppercase tracking-[0.02em] text-[#8E95A0] dark:text-[#94A3B8]">
+                    LAPORAN KEUANGAN TAHUN 2026
+                </h1>
+                <button id="report-next-year-button" type="button" onclick="changeYear(1)" aria-label="Tahun Berikutnya"
+                    class="p-1 rounded hover:bg-black/5 dark:hover:bg-white/10 text-[#8D95A0] hover:text-[#C74B92] transition disabled:opacity-40 disabled:cursor-not-allowed">
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M5.5 3L10.5 8L5.5 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
+            <div class="app-card rounded-[18px] px-6 py-5">
+                <p class="text-[12.5px] font-medium text-[#5A6370] dark:text-[#9AA8BE]">Total Omzet</p>
+                <h2 id="report-total-omzet" class="mt-2 text-[24px] font-bold tracking-tight" style="color: var(--text-primary);">Rp 0,00</h2>
+            </div>
+            <div class="app-card rounded-[18px] px-6 py-5">
+                <p class="text-[12.5px] font-medium text-[#5A6370] dark:text-[#9AA8BE]">Total Laba Bersih</p>
+                <h2 id="report-total-profit" class="mt-2 text-[24px] font-bold tracking-tight text-[#18A94B]">Rp 0,00</h2>
+            </div>
+            <div class="app-card rounded-[18px] px-6 py-5">
+                <p class="text-[12.5px] font-medium text-[#5A6370] dark:text-[#9AA8BE]">Margin Bersih</p>
+                <h2 id="report-total-margin" class="mt-2 text-[24px] font-bold tracking-tight" style="color: var(--text-primary);">0%</h2>
+            </div>
+            <div class="app-card rounded-[18px] px-6 py-5">
+                <p class="text-[12.5px] font-medium text-[#5A6370] dark:text-[#9AA8BE]">Total Item Terjual</p>
+                <h2 id="report-total-sold" class="mt-2 text-[24px] font-bold tracking-tight" style="color: var(--text-primary);">0 pcs</h2>
+            </div>
+        </div>
+
+        <div class="app-card rounded-[20px] p-5 sm:p-6">
+            <div class="mb-4">
+                <h2 class="text-[16px] font-bold tracking-tight" style="color: var(--text-primary);">Rincian Bulanan</h2>
+                <p class="mt-1 text-[12px] text-[#7D8694] dark:text-[#8E9DB5]">Omzet dan laba bersih dari penjualan pada setiap bulan.</p>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full min-w-[640px] text-left border-collapse">
+                    <thead>
+                        <tr class="border-b app-divider text-[11px] font-bold uppercase tracking-[0.04em] text-[#7D8694] dark:text-[#8E9DB5]">
+                            <th class="pb-3 pr-3">Bulan</th>
+                            <th class="pb-3 px-3 text-right">Item Terjual</th>
+                            <th class="pb-3 px-3 text-right">Omzet</th>
+                            <th class="pb-3 px-3 text-right">Laba Bersih</th>
+                            <th class="pb-3 pl-3 text-right">Margin</th>
+                        </tr>
+                    </thead>
+                    <tbody id="report-monthly-body" class="divide-y app-divider text-[13px]"></tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
     <!-- ==================== FLOATING TOAST NOTIFICATION (With Undo Support) ==================== -->
     <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
@@ -730,6 +802,10 @@ let activeBusinessId = null;
 let isAuthenticated = false;
         const MIN_SUMMARY_YEAR = 2026;
         const MAX_SUMMARY_YEAR = 2045;
+        const REPORT_MONTHS = [
+            'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+            'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+        ];
         // =========================================================================
         // 1. EXACT INITIAL DATA MATCHING MProtoType - 1.jpg MATHEMATICALLY
         //    - Total Sisa Stok: 10 + 3 + 5 + 8 + 10 + 7 + 20 = 63 pcs
@@ -888,6 +964,7 @@ let isAuthenticated = false;
             if (!memberships.length) {
                 document.getElementById('business-section').classList.remove('hidden');
                 document.getElementById('app-main').classList.add('hidden');
+                document.getElementById('finance-report-screen').classList.add('hidden');
                 document.getElementById('business-form').classList.remove('hidden');
                 showToast('Create a business before adding products.', 'info');
                 return;
@@ -943,6 +1020,11 @@ let isAuthenticated = false;
             let profit = 0;
             let onlineSold = 0;
             let offlineSold = 0;
+            const monthlyTotals = REPORT_MONTHS.map(() => ({
+                totalSold: 0,
+                omzet: 0,
+                profit: 0
+            }));
 
             if (sales && sales.length > 0) {
                 const saleIds = sales.map(sale => sale.id);
@@ -958,24 +1040,36 @@ let isAuthenticated = false;
                     return;
                 }
 
-                const channels = new Map(sales.map(sale => [String(sale.id), sale.channel]));
+                const salesById = new Map(sales.map(sale => [
+                    String(sale.id),
+                    {
+                        channel: sale.channel,
+                        monthIndex: new Date(sale.sold_at).getMonth()
+                    }
+                ]));
 
                 (items || []).forEach(item => {
                     const quantity = Number(item.quantity) || 0;
                     const priceAtSale = Number(item.price_at_sale) || 0;
                     const hppAtSale = Number(item.hpp_at_sale) || 0;
+                    const sale = salesById.get(String(item.sale_id));
+                    if (!sale || !Number.isInteger(sale.monthIndex) || !monthlyTotals[sale.monthIndex]) return;
 
                     totalSold += quantity;
                     omzet += quantity * priceAtSale;
                     profit += quantity * (priceAtSale - hppAtSale);
 
-                    const channel = channels.get(String(item.sale_id));
-                    if (channel === 'online') onlineSold += quantity;
-                    if (channel === 'offline') offlineSold += quantity;
+                    const month = monthlyTotals[sale.monthIndex];
+                    month.totalSold += quantity;
+                    month.omzet += quantity * priceAtSale;
+                    month.profit += quantity * (priceAtSale - hppAtSale);
+
+                    if (sale.channel === 'online') onlineSold += quantity;
+                    if (sale.channel === 'offline') offlineSold += quantity;
                 });
             }
 
-            state.dashboardTotals = { totalSold, omzet, profit, onlineSold, offlineSold };
+            state.dashboardTotals = { totalSold, omzet, profit, onlineSold, offlineSold, monthlyTotals };
             renderDashboard();
         }
         // Load persisted state if available
@@ -1113,6 +1207,7 @@ let isAuthenticated = false;
             document.getElementById('business-section').classList.add('hidden');
             document.getElementById('business-form').classList.add('hidden');
             document.getElementById('app-main').classList.add('hidden');
+            document.getElementById('finance-report-screen').classList.add('hidden');
             updateAuthControls(false);
             renderInventoryTable();
             renderDashboard();
@@ -1131,6 +1226,17 @@ let isAuthenticated = false;
             saveState();
             renderDashboard();
             await loadSalesForDisplayedYear();
+        }
+
+        function showFinanceReport() {
+            document.getElementById('app-main').classList.add('hidden');
+            document.getElementById('finance-report-screen').classList.remove('hidden');
+            renderFinanceReport();
+        }
+
+        function showMainScreen() {
+            document.getElementById('finance-report-screen').classList.add('hidden');
+            document.getElementById('app-main').classList.remove('hidden');
         }
 
         // =========================================================================
@@ -1192,6 +1298,45 @@ let isAuthenticated = false;
                     <span>Stok Aman</span>
                 `;
             }
+
+            renderFinanceReport();
+        }
+
+        function renderFinanceReport() {
+            const totals = state.dashboardTotals || {
+                totalSold: 0,
+                omzet: 0,
+                profit: 0,
+                monthlyTotals: []
+            };
+            const monthlyTotals = totals.monthlyTotals || [];
+            const marginPct = totals.omzet > 0
+                ? Math.round((totals.profit / totals.omzet) * 100)
+                : 0;
+
+            document.getElementById('report-year-heading').textContent = `LAPORAN KEUANGAN TAHUN ${state.activeYear}`;
+            document.getElementById('report-previous-year-button').disabled = state.activeYear <= MIN_SUMMARY_YEAR;
+            document.getElementById('report-next-year-button').disabled = state.activeYear >= MAX_SUMMARY_YEAR;
+            document.getElementById('report-total-omzet').textContent = formatTableCurrency(totals.omzet);
+            document.getElementById('report-total-profit').textContent = formatTableCurrency(totals.profit);
+            document.getElementById('report-total-margin').textContent = `${marginPct}%`;
+            document.getElementById('report-total-sold').textContent = `${totals.totalSold} pcs`;
+            document.getElementById('report-monthly-body').innerHTML = REPORT_MONTHS.map((monthName, index) => {
+                const month = monthlyTotals[index] || { totalSold: 0, omzet: 0, profit: 0 };
+                const monthlyMargin = month.omzet > 0
+                    ? Math.round((month.profit / month.omzet) * 100)
+                    : 0;
+
+                return `
+                    <tr>
+                        <td class="py-3 pr-3 font-medium">${monthName}</td>
+                        <td class="py-3 px-3 text-right">${month.totalSold} pcs</td>
+                        <td class="py-3 px-3 text-right whitespace-nowrap">${formatTableCurrency(month.omzet)}</td>
+                        <td class="py-3 px-3 text-right whitespace-nowrap">${formatTableCurrency(month.profit)}</td>
+                        <td class="py-3 pl-3 text-right">${monthlyMargin}%</td>
+                    </tr>
+                `;
+            }).join('');
         }
 
         // =========================================================================
