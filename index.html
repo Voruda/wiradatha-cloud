@@ -750,6 +750,24 @@
         </div>
 
         <div class="app-card rounded-[20px] p-5 sm:p-6">
+            <div class="mb-4 flex flex-wrap items-start justify-between gap-3">
+                <div>
+                    <h2 class="text-[16px] font-bold tracking-tight" style="color: var(--text-primary);">Grafik Keuangan Tahunan</h2>
+                    <p class="mt-1 text-[12px] text-[#7D8694] dark:text-[#8E9DB5]">Perbandingan omzet dan laba bersih per bulan.</p>
+                </div>
+                <div class="flex items-center gap-4 text-[12px] text-[#5A6370] dark:text-[#CBD5E1]" aria-label="Legenda grafik">
+                    <span class="inline-flex items-center gap-2"><span class="h-2.5 w-2.5 rounded-sm bg-[#C74B92]"></span>Omzet</span>
+                    <span class="inline-flex items-center gap-2"><span class="h-2.5 w-2.5 rounded-sm bg-[#18A94B]"></span>Laba bersih</span>
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <svg id="report-annual-chart" class="block w-full min-w-[720px]" viewBox="0 0 960 320" role="img"
+                    aria-label="Grafik perbandingan omzet dan laba bersih bulanan untuk tahun 2026">
+                </svg>
+            </div>
+        </div>
+
+        <div class="app-card rounded-[20px] p-5 sm:p-6">
             <div class="mb-4">
                 <h2 class="text-[16px] font-bold tracking-tight" style="color: var(--text-primary);">Rincian Bulanan</h2>
                 <p class="mt-1 text-[12px] text-[#7D8694] dark:text-[#8E9DB5]">Omzet dan laba bersih dari penjualan pada setiap bulan.</p>
@@ -1357,6 +1375,7 @@ let isAuthenticated = false;
             document.getElementById('report-total-profit').textContent = formatTableCurrency(totals.profit);
             document.getElementById('report-total-margin').textContent = `${marginPct}%`;
             document.getElementById('report-total-sold').textContent = `${totals.totalSold} pcs`;
+            renderAnnualFinanceChart(monthlyTotals);
             document.getElementById('report-monthly-body').innerHTML = REPORT_MONTHS.map((monthName, index) => {
                 const month = monthlyTotals[index] || { totalSold: 0, omzet: 0, profit: 0 };
                 const monthlyMargin = month.omzet > 0
@@ -1373,6 +1392,80 @@ let isAuthenticated = false;
                     </tr>
                 `;
             }).join('');
+        }
+
+        function formatChartCurrency(amount) {
+            const formatted = new Intl.NumberFormat('id-ID', {
+                notation: 'compact',
+                maximumFractionDigits: 1
+            }).format(amount);
+            return `Rp ${formatted}`;
+        }
+
+        function renderAnnualFinanceChart(monthlyTotals) {
+            const chart = document.getElementById('report-annual-chart');
+            const plotLeft = 78;
+            const plotRight = 944;
+            const plotTop = 24;
+            const plotBottom = 264;
+            const plotHeight = plotBottom - plotTop;
+            const plotWidth = plotRight - plotLeft;
+            const monthlyValues = REPORT_MONTHS.map((monthName, index) => {
+                const month = monthlyTotals[index] || { omzet: 0, profit: 0 };
+                return {
+                    monthName,
+                    omzet: Number(month.omzet) || 0,
+                    profit: Number(month.profit) || 0
+                };
+            });
+            const maxValue = Math.max(0, ...monthlyValues.flatMap(month => [month.omzet, month.profit]));
+            const minValue = Math.min(0, ...monthlyValues.map(month => month.profit));
+            const valueRange = Math.max(1, maxValue - minValue);
+            const scaleMax = maxValue + valueRange * 0.08;
+            const scaleMin = minValue - valueRange * 0.08;
+            const scaleRange = scaleMax - scaleMin;
+            const yForValue = value => plotTop + ((scaleMax - value) / scaleRange) * plotHeight;
+            const zeroY = yForValue(0);
+            const tickMarkup = Array.from({ length: 5 }, (_, index) => {
+                const value = scaleMax - (scaleRange * index / 4);
+                const y = plotTop + (plotHeight * index / 4);
+                return `
+                    <line x1="${plotLeft}" y1="${y}" x2="${plotRight}" y2="${y}" stroke="currentColor" stroke-opacity="0.12"/>
+                    <text x="${plotLeft - 10}" y="${y + 4}" text-anchor="end" fill="currentColor" font-size="10">${formatChartCurrency(value)}</text>
+                `;
+            }).join('');
+            const groupWidth = plotWidth / REPORT_MONTHS.length;
+            const barWidth = 18;
+            const barGap = 5;
+            const barsMarkup = monthlyValues.map((month, index) => {
+                const centerX = plotLeft + groupWidth * (index + 0.5);
+                const xOmzet = centerX - barWidth - barGap / 2;
+                const xProfit = centerX + barGap / 2;
+                const omzetY = yForValue(month.omzet);
+                const profitY = yForValue(month.profit);
+                const omzetHeight = Math.abs(zeroY - omzetY);
+                const profitHeight = Math.abs(zeroY - profitY);
+
+                return `
+                    <g>
+                        <title>${month.monthName}: omzet ${formatTableCurrency(month.omzet)}, laba bersih ${formatTableCurrency(month.profit)}</title>
+                        <rect x="${xOmzet}" y="${Math.min(zeroY, omzetY)}" width="${barWidth}" height="${omzetHeight}" rx="3" fill="#C74B92"/>
+                        <rect x="${xProfit}" y="${Math.min(zeroY, profitY)}" width="${barWidth}" height="${profitHeight}" rx="3" fill="#18A94B"/>
+                        <text x="${centerX}" y="${plotBottom + 22}" text-anchor="middle" fill="currentColor" font-size="10">${month.monthName.slice(0, 3)}</text>
+                    </g>
+                `;
+            }).join('');
+
+            chart.setAttribute('aria-label', `Grafik perbandingan omzet dan laba bersih bulanan untuk tahun ${state.activeYear}`);
+            chart.innerHTML = `
+                <title>Grafik Keuangan Tahun ${state.activeYear}</title>
+                <desc>Perbandingan omzet dan laba bersih untuk setiap bulan. Nilai di bawah garis nol menunjukkan kerugian.</desc>
+                <g fill="currentColor" class="text-[#7D8694] dark:text-[#8E9DB5]">
+                    ${tickMarkup}
+                    <line x1="${plotLeft}" y1="${zeroY}" x2="${plotRight}" y2="${zeroY}" stroke="currentColor" stroke-opacity="0.45" stroke-width="1.5"/>
+                    ${barsMarkup}
+                </g>
+            `;
         }
 
         // =========================================================================
