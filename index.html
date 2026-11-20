@@ -316,20 +316,20 @@
     <!-- ==================== MAIN CONTENT CONTAINER ==================== -->
     <main class="max-w-[1380px] w-full mx-auto px-4 sm:px-8 pt-5 pb-10 flex-1 space-y-5">
 
-        <!-- Sub-Header Month Switcher (< RINGKASAN PERFORMA - NOVEMBER >) -->
+        <!-- Sub-Header Year Switcher -->
         <div class="flex items-center justify-between">
             <div class="inline-flex items-center gap-2 select-none">
-                <button onclick="changeMonth(-1)" aria-label="Bulan Sebelumnya"
-                    class="p-1 rounded hover:bg-black/5 dark:hover:bg-white/10 text-[#8D95A0] hover:text-[#C74B92] transition">
+                <button id="previous-year-button" onclick="changeYear(-1)" aria-label="Tahun Sebelumnya"
+                    class="p-1 rounded hover:bg-black/5 dark:hover:bg-white/10 text-[#8D95A0] hover:text-[#C74B92] transition disabled:opacity-40 disabled:cursor-not-allowed">
                     <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M10.5 3L5.5 8L10.5 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                 </button>
                 <h2 id="period-heading" class="text-[13.5px] sm:text-[14px] font-bold uppercase tracking-[0.02em] text-[#8E95A0] dark:text-[#94A3B8]">
-                    RINGKASAN PERFORMA - NOVEMBER
+                    RINGKASAN TAHUN 2026
                 </h2>
-                <button onclick="changeMonth(1)" aria-label="Bulan Berikutnya"
-                    class="p-1 rounded hover:bg-black/5 dark:hover:bg-white/10 text-[#8D95A0] hover:text-[#C74B92] transition">
+                <button id="next-year-button" onclick="changeYear(1)" aria-label="Tahun Berikutnya"
+                    class="p-1 rounded hover:bg-black/5 dark:hover:bg-white/10 text-[#8D95A0] hover:text-[#C74B92] transition disabled:opacity-40 disabled:cursor-not-allowed">
                     <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M5.5 3L10.5 8L5.5 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
@@ -694,6 +694,8 @@
 );
 
 let activeBusinessId = null;
+        const MIN_SUMMARY_YEAR = 2026;
+        const MAX_SUMMARY_YEAR = 2045;
         // =========================================================================
         // 1. EXACT INITIAL DATA MATCHING MProtoType - 1.jpg MATHEMATICALLY
         //    - Total Sisa Stok: 10 + 3 + 5 + 8 + 10 + 7 + 20 = 63 pcs
@@ -835,6 +837,7 @@ let activeBusinessId = null;
             products: [],
             months: JSON.parse(JSON.stringify(monthPeriods)),
             activeMonthIndex: 1, // Default: NOVEMBER (matches screenshot)
+            activeYear: MIN_SUMMARY_YEAR,
             lastAction: null,
             dashboardTotals: null
         };
@@ -870,29 +873,18 @@ let activeBusinessId = null;
 
             state.products = products || [];
             renderInventoryTable();
-            await loadSalesForDisplayedMonth();
+            await loadSalesForDisplayedYear();
         }
 
-        async function loadSalesForDisplayedMonth() {
+        async function loadSalesForDisplayedYear() {
             if (!activeBusinessId) {
                 state.dashboardTotals = null;
                 renderDashboard();
                 return;
             }
 
-            const monthNames = ['OKTOBER', 'NOVEMBER', 'DESEMBER'];
-            const monthKey = state.months[state.activeMonthIndex].key;
-            const monthOffset = monthNames.indexOf(monthKey);
-            if (monthOffset < 0) {
-                state.dashboardTotals = null;
-                renderDashboard();
-                return;
-            }
-
-            const now = new Date();
-            const month = 9 + monthOffset;
-            const start = new Date(now.getFullYear(), month, 1);
-            const end = new Date(now.getFullYear(), month + 1, 1);
+            const start = new Date(state.activeYear, 0, 1);
+            const end = new Date(state.activeYear + 1, 0, 1);
 
             const { data: sales, error: salesError } = await supabaseClient
                 .from('sales')
@@ -958,6 +950,10 @@ let activeBusinessId = null;
                         state.products = parsed.products;
                         state.months = parsed.months;
                         state.activeMonthIndex = typeof parsed.activeMonthIndex === 'number' ? parsed.activeMonthIndex : 1;
+                        const savedYear = Number(parsed.activeYear);
+                        state.activeYear = Number.isInteger(savedYear) && savedYear >= MIN_SUMMARY_YEAR && savedYear <= MAX_SUMMARY_YEAR
+                            ? savedYear
+                            : MIN_SUMMARY_YEAR;
                         return;
                     }
                 }
@@ -967,6 +963,7 @@ let activeBusinessId = null;
             state.products = JSON.parse(JSON.stringify(initialCatalog));
             state.months = JSON.parse(JSON.stringify(monthPeriods));
             state.activeMonthIndex = 1;
+            state.activeYear = MIN_SUMMARY_YEAR;
         }
 
         function saveState() {
@@ -974,7 +971,8 @@ let activeBusinessId = null;
                 localStorage.setItem('wiradatha_state_v1', JSON.stringify({
                     products: state.products,
                     months: state.months,
-                    activeMonthIndex: state.activeMonthIndex
+                    activeMonthIndex: state.activeMonthIndex,
+                    activeYear: state.activeYear
                 }));
             } catch (e) {
                 console.warn('Could not save localStorage:', e);
@@ -1037,19 +1035,23 @@ let activeBusinessId = null;
         }
 
         // =========================================================================
-        // 4. MONTH PERIOD SWITCHER (< RINGKASAN PERFORMA - NOVEMBER >)
+        // 4. YEAR SWITCHER
         // =========================================================================
-        async function changeMonth(direction) {
-            state.activeMonthIndex = (state.activeMonthIndex + direction + state.months.length) % state.months.length;
+        async function changeYear(direction) {
+            const nextYear = state.activeYear + direction;
+            if (nextYear < MIN_SUMMARY_YEAR || nextYear > MAX_SUMMARY_YEAR) return;
+
+            state.activeYear = nextYear;
+            state.dashboardTotals = null;
             saveState();
-            await loadSalesForDisplayedMonth();
+            renderDashboard();
+            await loadSalesForDisplayedYear();
         }
 
         // =========================================================================
         // 5. RENDER KPI DASHBOARD CARDS
         // =========================================================================
         function renderDashboard() {
-            const currentMonth = state.months[state.activeMonthIndex];
             const totals = state.dashboardTotals || {
                 totalSold: 0,
                 omzet: 0,
@@ -1065,7 +1067,9 @@ let activeBusinessId = null;
                 ? Math.round((totals.profit / totals.omzet) * 100)
                 : 0;
 
-            document.getElementById('period-heading').textContent = currentMonth.label;
+            document.getElementById('period-heading').textContent = `RINGKASAN TAHUN ${state.activeYear}`;
+            document.getElementById('previous-year-button').disabled = state.activeYear <= MIN_SUMMARY_YEAR;
+            document.getElementById('next-year-button').disabled = state.activeYear >= MAX_SUMMARY_YEAR;
             document.getElementById('kpi-sold-total').textContent = `${totalSold} pcs`;
             document.getElementById('kpi-sold-breakdown').innerHTML =
                 `Online: <span class="font-semibold text-[#56606E] dark:text-[#CBD5E1]">${totals.onlineSold} pcs</span> | Offline: <span class="font-semibold text-[#56606E] dark:text-[#CBD5E1]">${totals.offlineSold} pcs</span>`;
