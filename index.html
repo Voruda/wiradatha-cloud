@@ -281,7 +281,7 @@
                 </button>
 
                 <!-- White Pill: Cloud Sync Aktif -->
-                <div class="relative">
+                <div id="cloud-sync-container" class="relative hidden">
                     <button id="cloud-sync-btn" onclick="triggerCloudSync()" ondblclick="openResetModal()"
                         title="Klik untuk sinkronisasi cloud (Klik 2x untuk opsi reset demo)"
                         class="bg-white hover:bg-slate-50 active:scale-[0.98] transition-all rounded-full px-4 sm:px-5 py-2 flex items-center gap-2.5 shadow-sm">
@@ -298,33 +298,56 @@
                         </span>
                     </button>
                 </div>
-                <button id="logout-btn" type="button" onclick="signOut()" aria-label="Keluar dari akun"
-                    title="Keluar dari akun"
-                    class="hidden shrink-0 p-2 sm:px-3 rounded-full text-white hover:bg-white/10 transition sm:inline-flex sm:items-center sm:gap-2">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <button id="auth-action-btn" type="button" onclick="handleAuthAction()" aria-label="Masuk ke akun"
+                    title="Masuk ke akun"
+                    class="shrink-0 p-2 sm:px-3 rounded-full text-white hover:bg-white/10 transition sm:inline-flex sm:items-center sm:gap-2">
+                    <svg id="auth-login-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                         <path d="M10 17L15 12L10 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
                         <path d="M15 12H3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
                         <path d="M12 3H19C20.1 3 21 3.9 21 5V19C21 20.1 20.1 21 19 21H12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
-                    <span class="hidden sm:inline text-[13px] font-semibold">Keluar</span>
+                    <svg id="auth-logout-icon" class="hidden" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path d="M14 17L9 12L14 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M9 12H21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                        <path d="M12 3H19C20.1 3 21 3.9 21 5V19C21 20.1 20.1 21 19 21H12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span id="auth-action-label" class="hidden sm:inline text-[13px] font-semibold">Masuk</span>
                 </button>
             </div>
         </div>
     </header>
-    <section class="mx-auto w-full max-w-md space-y-3 p-4">
-    <form id="login-form" class="space-y-2">
-        <input id="login-email" type="email" placeholder="Email" required>
-        <input id="login-password" type="password" placeholder="Password" required>
-        <button type="submit">Sign in</button>
-    </form>
-
-    <form id="business-form" class="hidden space-y-2">
-        <input id="business-name" type="text" placeholder="Business name" required>
-        <button type="submit">Create business</button>
-    </form>
-</section>
+    <section id="login-screen" class="flex flex-1 items-center justify-center px-4 py-10">
+        <div class="app-card w-full max-w-md rounded-[20px] p-6 sm:p-8">
+            <div class="mb-6 text-center">
+                <p class="text-[12px] font-semibold uppercase tracking-[0.12em] text-[#C74B92]">WiradathaApp</p>
+                <h1 class="mt-2 text-[24px] font-bold tracking-tight" style="color: var(--text-primary);">Masuk ke akun Anda</h1>
+                <p class="mt-2 text-[13px] text-[#7D8694] dark:text-[#8E9DB5]">Kelola inventaris dan ringkasan bisnis Anda.</p>
+            </div>
+            <form id="login-form" class="space-y-4">
+                <div>
+                    <label for="login-email" class="mb-1.5 block text-[12.5px] font-medium text-[#3C4450] dark:text-[#CBD5E1]">Email</label>
+                    <input id="login-email" type="email" autocomplete="username" required
+                        class="app-input w-full rounded-[10px] px-3.5 py-3 text-[13px]">
+                </div>
+                <div>
+                    <label for="login-password" class="mb-1.5 block text-[12.5px] font-medium text-[#3C4450] dark:text-[#CBD5E1]">Password</label>
+                    <input id="login-password" type="password" autocomplete="current-password" required
+                        class="app-input w-full rounded-[10px] px-3.5 py-3 text-[13px]">
+                </div>
+                <button type="submit" class="btn-catalog-gradient w-full rounded-[10px] px-4 py-3 text-[13px] font-semibold text-white">
+                    Masuk
+                </button>
+            </form>
+        </div>
+    </section>
+    <section id="business-section" class="hidden mx-auto w-full max-w-md space-y-3 p-4">
+        <form id="business-form" class="hidden space-y-2">
+            <input id="business-name" type="text" placeholder="Business name" required>
+            <button type="submit">Create business</button>
+        </form>
+    </section>
     <!-- ==================== MAIN CONTENT CONTAINER ==================== -->
-    <main class="max-w-[1380px] w-full mx-auto px-4 sm:px-8 pt-5 pb-10 flex-1 space-y-5">
+    <main id="app-main" class="hidden max-w-[1380px] w-full mx-auto px-4 sm:px-8 pt-5 pb-10 flex-1 space-y-5">
 
         <!-- Sub-Header Year Switcher -->
         <div class="flex items-center justify-between">
@@ -704,6 +727,7 @@
 );
 
 let activeBusinessId = null;
+let isAuthenticated = false;
         const MIN_SUMMARY_YEAR = 2026;
         const MAX_SUMMARY_YEAR = 2045;
         // =========================================================================
@@ -862,12 +886,16 @@ let activeBusinessId = null;
             }
 
             if (!memberships.length) {
+                document.getElementById('business-section').classList.remove('hidden');
+                document.getElementById('app-main').classList.add('hidden');
                 document.getElementById('business-form').classList.remove('hidden');
                 showToast('Create a business before adding products.', 'info');
                 return;
             }
 
             activeBusinessId = activeBusinessId || memberships[0].business_id;
+            document.getElementById('business-section').classList.add('hidden');
+            document.getElementById('app-main').classList.remove('hidden');
             document.getElementById('business-form').classList.add('hidden');
 
             const { data: products, error: productsError } = await supabaseClient
@@ -1044,6 +1072,29 @@ let activeBusinessId = null;
             showToast(nextTheme === 'dark' ? 'Mode Gelap (Pink & Midnight) aktif' : 'Mode Terang aktif');
         }
 
+        function updateAuthControls(authenticated) {
+            isAuthenticated = authenticated;
+            const action = authenticated ? 'Keluar' : 'Masuk';
+            const button = document.getElementById('auth-action-btn');
+
+            document.getElementById('auth-action-label').textContent = action;
+            document.getElementById('auth-login-icon').classList.toggle('hidden', authenticated);
+            document.getElementById('auth-logout-icon').classList.toggle('hidden', !authenticated);
+            document.getElementById('cloud-sync-container').classList.toggle('hidden', !authenticated);
+            button.setAttribute('aria-label', authenticated ? 'Keluar dari akun' : 'Masuk ke akun');
+            button.title = authenticated ? 'Keluar dari akun' : 'Masuk ke akun';
+        }
+
+        function handleAuthAction() {
+            if (isAuthenticated) {
+                signOut();
+                return;
+            }
+
+            document.getElementById('login-screen').classList.remove('hidden');
+            document.getElementById('login-email').focus();
+        }
+
         async function signOut() {
             const { error } = await supabaseClient.auth.signOut();
             if (error) {
@@ -1057,10 +1108,12 @@ let activeBusinessId = null;
             state.lastAction = null;
             saveState();
 
-            document.getElementById('login-form').classList.remove('hidden');
             document.getElementById('login-password').value = '';
+            document.getElementById('login-screen').classList.remove('hidden');
+            document.getElementById('business-section').classList.add('hidden');
             document.getElementById('business-form').classList.add('hidden');
-            document.getElementById('logout-btn').classList.add('hidden');
+            document.getElementById('app-main').classList.add('hidden');
+            updateAuthControls(false);
             renderInventoryTable();
             renderDashboard();
             showToast('Berhasil keluar.', 'success');
@@ -1671,8 +1724,9 @@ window.addEventListener('DOMContentLoaded', async () => {
             return;
         }
 
-        document.getElementById('login-form').classList.add('hidden');
-        document.getElementById('logout-btn').classList.remove('hidden');
+        updateAuthControls(true);
+        document.getElementById('login-screen').classList.add('hidden');
+        document.getElementById('login-password').value = '';
         await loadCloudData();
     });
 
@@ -1702,9 +1756,12 @@ window.addEventListener('DOMContentLoaded', async () => {
     }
 
     if (data.session) {
-        document.getElementById('login-form').classList.add('hidden');
-        document.getElementById('logout-btn').classList.remove('hidden');
+        updateAuthControls(true);
+        document.getElementById('login-screen').classList.add('hidden');
         await loadCloudData();
+    } else {
+        updateAuthControls(false);
+        document.getElementById('login-screen').classList.remove('hidden');
     }
 });
     </script>
