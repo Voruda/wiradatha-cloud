@@ -349,19 +349,19 @@
     <!-- ==================== MAIN CONTENT CONTAINER ==================== -->
     <main id="app-main" class="hidden max-w-[1380px] w-full mx-auto px-4 sm:px-8 pt-5 pb-10 flex-1 space-y-5">
 
-        <!-- Sub-Header Year Switcher -->
+        <!-- Sub-Header Month Switcher -->
         <div class="flex items-center justify-between">
             <div class="inline-flex items-center gap-2 select-none">
-                <button id="previous-year-button" onclick="changeYear(-1)" aria-label="Tahun Sebelumnya"
+                <button id="previous-year-button" onclick="changeMonth(-1)" aria-label="Bulan Sebelumnya"
                     class="p-1 rounded hover:bg-black/5 dark:hover:bg-white/10 text-[#8D95A0] hover:text-[#C74B92] transition disabled:opacity-40 disabled:cursor-not-allowed">
                     <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M10.5 3L5.5 8L10.5 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                 </button>
                 <h2 id="period-heading" class="text-[13.5px] sm:text-[14px] font-bold uppercase tracking-[0.02em] text-[#8E95A0] dark:text-[#94A3B8]">
-                    RINGKASAN TAHUN 2026
+                    RINGKASAN BULAN
                 </h2>
-                <button id="next-year-button" onclick="changeYear(1)" aria-label="Tahun Berikutnya"
+                <button id="next-year-button" onclick="changeMonth(1)" aria-label="Bulan Berikutnya"
                     class="p-1 rounded hover:bg-black/5 dark:hover:bg-white/10 text-[#8D95A0] hover:text-[#C74B92] transition disabled:opacity-40 disabled:cursor-not-allowed">
                     <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M5.5 3L10.5 8L5.5 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -948,6 +948,7 @@ let isAuthenticated = false;
             months: JSON.parse(JSON.stringify(monthPeriods)),
             activeMonthIndex: 1, // Default: NOVEMBER (matches screenshot)
             activeYear: MIN_SUMMARY_YEAR,
+            activeSummaryMonth: new Date().getMonth(),
             lastAction: null,
             dashboardTotals: null
         };
@@ -1023,7 +1024,9 @@ let isAuthenticated = false;
             const monthlyTotals = REPORT_MONTHS.map(() => ({
                 totalSold: 0,
                 omzet: 0,
-                profit: 0
+                profit: 0,
+                onlineSold: 0,
+                offlineSold: 0
             }));
 
             if (sales && sales.length > 0) {
@@ -1064,8 +1067,14 @@ let isAuthenticated = false;
                     month.omzet += quantity * priceAtSale;
                     month.profit += quantity * (priceAtSale - hppAtSale);
 
-                    if (sale.channel === 'online') onlineSold += quantity;
-                    if (sale.channel === 'offline') offlineSold += quantity;
+                    if (sale.channel === 'online') {
+                        onlineSold += quantity;
+                        month.onlineSold += quantity;
+                    }
+                    if (sale.channel === 'offline') {
+                        offlineSold += quantity;
+                        month.offlineSold += quantity;
+                    }
                 });
             }
 
@@ -1086,6 +1095,10 @@ let isAuthenticated = false;
                         state.activeYear = Number.isInteger(savedYear) && savedYear >= MIN_SUMMARY_YEAR && savedYear <= MAX_SUMMARY_YEAR
                             ? savedYear
                             : MIN_SUMMARY_YEAR;
+                        const savedMonth = Number(parsed.activeSummaryMonth);
+                        state.activeSummaryMonth = Number.isInteger(savedMonth) && savedMonth >= 0 && savedMonth < REPORT_MONTHS.length
+                            ? savedMonth
+                            : new Date().getMonth();
                         return;
                     }
                 }
@@ -1096,6 +1109,7 @@ let isAuthenticated = false;
             state.months = JSON.parse(JSON.stringify(monthPeriods));
             state.activeMonthIndex = 1;
             state.activeYear = MIN_SUMMARY_YEAR;
+            state.activeSummaryMonth = new Date().getMonth();
         }
 
         function saveState() {
@@ -1104,7 +1118,8 @@ let isAuthenticated = false;
                     products: state.products,
                     months: state.months,
                     activeMonthIndex: state.activeMonthIndex,
-                    activeYear: state.activeYear
+                    activeYear: state.activeYear,
+                    activeSummaryMonth: state.activeSummaryMonth
                 }));
             } catch (e) {
                 console.warn('Could not save localStorage:', e);
@@ -1215,8 +1230,25 @@ let isAuthenticated = false;
         }
 
         // =========================================================================
-        // 4. YEAR SWITCHER
+        // 4. PERIOD SWITCHERS
         // =========================================================================
+        async function changeMonth(direction) {
+            const nextDate = new Date(state.activeYear, state.activeSummaryMonth + direction, 1);
+            const nextYear = nextDate.getFullYear();
+            if (nextYear < MIN_SUMMARY_YEAR || nextYear > MAX_SUMMARY_YEAR) return;
+
+            const yearChanged = nextYear !== state.activeYear;
+            state.activeYear = nextYear;
+            state.activeSummaryMonth = nextDate.getMonth();
+            if (yearChanged) state.dashboardTotals = null;
+            saveState();
+            renderDashboard();
+
+            if (yearChanged) {
+                await loadSalesForDisplayedYear();
+            }
+        }
+
         async function changeYear(direction) {
             const nextYear = state.activeYear + direction;
             if (nextYear < MIN_SUMMARY_YEAR || nextYear > MAX_SUMMARY_YEAR) return;
@@ -1243,7 +1275,8 @@ let isAuthenticated = false;
         // 5. RENDER KPI DASHBOARD CARDS
         // =========================================================================
         function renderDashboard() {
-            const totals = state.dashboardTotals || {
+            const annualTotals = state.dashboardTotals || {};
+            const totals = (annualTotals.monthlyTotals && annualTotals.monthlyTotals[state.activeSummaryMonth]) || {
                 totalSold: 0,
                 omzet: 0,
                 profit: 0,
@@ -1258,9 +1291,12 @@ let isAuthenticated = false;
                 ? Math.round((totals.profit / totals.omzet) * 100)
                 : 0;
 
-            document.getElementById('period-heading').textContent = `RINGKASAN TAHUN ${state.activeYear}`;
-            document.getElementById('previous-year-button').disabled = state.activeYear <= MIN_SUMMARY_YEAR;
-            document.getElementById('next-year-button').disabled = state.activeYear >= MAX_SUMMARY_YEAR;
+            document.getElementById('period-heading').textContent =
+                `RINGKASAN BULAN ${REPORT_MONTHS[state.activeSummaryMonth].toUpperCase()} ${state.activeYear}`;
+            document.getElementById('previous-year-button').disabled =
+                state.activeYear === MIN_SUMMARY_YEAR && state.activeSummaryMonth === 0;
+            document.getElementById('next-year-button').disabled =
+                state.activeYear === MAX_SUMMARY_YEAR && state.activeSummaryMonth === REPORT_MONTHS.length - 1;
             document.getElementById('kpi-sold-total').textContent = `${totalSold} pcs`;
             document.getElementById('kpi-sold-breakdown').innerHTML =
                 `Online: <span class="font-semibold text-[#56606E] dark:text-[#CBD5E1]">${totals.onlineSold} pcs</span> | Offline: <span class="font-semibold text-[#56606E] dark:text-[#CBD5E1]">${totals.offlineSold} pcs</span>`;
