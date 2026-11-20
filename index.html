@@ -1,0 +1,1674 @@
+<!DOCTYPE html>
+<html lang="id" class="light">
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+    window.WIRADATHA_SUPABASE_URL = "%VITE_SUPABASE_URL%";
+    window.WIRADATHA_SUPABASE_ANON_KEY = "%VITE_SUPABASE_ANON_KEY%";
+</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WiradathaApp — Cloud-based Inventory & Profit Accounting System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Theme Variables matching MProtoType - 1.jpg (Light) & Pink/Bluish-White Dark Mode */
+        :root {
+            --bg-page: #ECEEF1;
+            --bg-navbar: #1F1923;
+            --border-navbar: #2D2433;
+            --bg-card: #E9F6F6;
+            --bg-card-elevated: #EFF9F9;
+            --border-card: #C9D6DD;
+            --border-divider: #D3DFE4;
+            --bg-input: #F5F7F9;
+            --bg-input-focus: #FFFFFF;
+            --border-input: #CBD3DC;
+            --text-primary: #14181F;
+            --text-secondary: #5D6673;
+            --text-muted: #8C95A2;
+            --badge-cat-bg: #DCE4E8;
+            --badge-cat-text: #7A8491;
+            --stepper-btn-bg: #E6ECF0;
+            --stepper-btn-hover: #D5DFE6;
+            --stepper-btn-text: #6E7885;
+            --shadow-card: 0 3px 12px rgba(18, 28, 38, 0.06), 0 1px 3px rgba(18, 28, 38, 0.04);
+            --shadow-cta: 0 6px 14px rgba(226, 130, 168, 0.35), 0 2px 4px rgba(0, 0, 0, 0.08);
+            --pink-accent: #C74B92;
+            --pink-ring-outer: rgba(199, 75, 146, 0.24);
+            --pink-ring-inner: rgba(199, 75, 146, 0.10);
+            --pink-badge-bg: rgba(235, 212, 229, 0.55);
+        }
+
+        html.dark {
+            --bg-page: #111520;
+            --bg-navbar: #16121C;
+            --border-navbar: #2D2238;
+            --bg-card: #1A2130;
+            --bg-card-elevated: #1F283A;
+            --border-card: #2D394E;
+            --border-divider: #283347;
+            --bg-input: #131824;
+            --bg-input-focus: #181F2E;
+            --border-input: #313E54;
+            --text-primary: #F0F6FC;
+            --text-secondary: #A6B4C8;
+            --text-muted: #76859B;
+            --badge-cat-bg: #263145;
+            --badge-cat-text: #9EB0C7;
+            --stepper-btn-bg: #253044;
+            --stepper-btn-hover: #32405A;
+            --stepper-btn-text: #CBD5E1;
+            --shadow-card: 0 6px 20px rgba(0, 0, 0, 0.32), 0 1px 3px rgba(0, 0, 0, 0.2);
+            --shadow-cta: 0 6px 18px rgba(217, 102, 164, 0.32), 0 2px 6px rgba(0, 0, 0, 0.25);
+            --pink-accent: #E86CB2;
+            --pink-ring-outer: rgba(232, 108, 178, 0.35);
+            --pink-ring-inner: rgba(232, 108, 178, 0.16);
+            --pink-badge-bg: rgba(232, 108, 178, 0.14);
+        }
+
+        body {
+            background-color: var(--bg-page);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            transition: background-color 0.25s ease, color 0.25s ease;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .app-navbar {
+            background-color: var(--bg-navbar);
+            border-bottom: 1px solid var(--border-navbar);
+        }
+
+        .app-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-card);
+            box-shadow: var(--shadow-card);
+            transition: background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        .app-input {
+            background-color: var(--bg-input);
+            border: 1px solid var(--border-input);
+            color: var(--text-primary);
+            transition: all 0.2s ease;
+        }
+
+        .app-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .app-input:focus {
+            background-color: var(--bg-input-focus);
+            border-color: var(--pink-accent);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(199, 75, 146, 0.15);
+        }
+
+        .app-divider {
+            border-color: var(--border-divider);
+        }
+
+        .cat-badge {
+            background-color: var(--badge-cat-bg);
+            color: var(--badge-cat-text);
+        }
+
+        .mini-step-btn {
+            background-color: var(--stepper-btn-bg);
+            color: var(--stepper-btn-text);
+            transition: background-color 0.15s ease, transform 0.1s ease;
+        }
+
+        .mini-step-btn:hover {
+            background-color: var(--stepper-btn-hover);
+        }
+
+        .mini-step-btn:active {
+            transform: scale(0.92);
+        }
+
+        /* Hide native number-input counters: the form uses custom up/down controls. */
+        .app-input input[type="number"],
+        input[type="number"] {
+            appearance: textfield;
+            -moz-appearance: textfield;
+        }
+
+        .app-input input[type="number"]::-webkit-inner-spin-button,
+        .app-input input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            appearance: none;
+            margin: 0;
+        }
+
+        /* Exact Warm Rose-Pink to Peach-Gold Gradient Button */
+        .btn-catalog-gradient {
+            background: linear-gradient(90deg, #E280A7 0%, #E79B8E 52%, #E8B37C 100%);
+            box-shadow: var(--shadow-cta);
+            transition: transform 0.15s ease, filter 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .btn-catalog-gradient:hover {
+            filter: brightness(1.03);
+            transform: translateY(-1px);
+        }
+
+        .btn-catalog-gradient:active {
+            transform: translateY(0px) scale(0.99);
+        }
+
+        /* Double-ring Pink Circular Icon Badge on KPI Cards */
+        .kpi-icon-ring {
+            width: 40px;
+            height: 40px;
+            border-radius: 9999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            background: var(--pink-badge-bg);
+            border: 1px solid var(--pink-ring-inner);
+            box-shadow:
+                0 0 0 5px var(--pink-ring-inner),
+                0 0 0 9px var(--pink-ring-outer);
+        }
+
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+    <!-- ==================== APP NAVBAR ==================== -->
+    <header class="app-navbar h-[82px] sm:h-[88px] sticky top-0 z-40">
+        <div class="max-w-[1380px] h-full w-full mx-auto px-4 sm:px-8 flex items-center justify-between">
+            <!-- Left: Exact Inline Vector SVG Logo + Subtitle -->
+            <div class="flex flex-col select-none">
+                <div class="flex items-center">
+                    <svg viewBox="0 0 212 99" fill="none" xmlns="http://www.w3.org/2000/svg"
+                        class="h-[58px] sm:h-[64px] w-auto -mt-1 -mb-4 overflow-visible block shrink-0"
+                        role="img" aria-label="WiradathaApp Logo">
+                        <g filter="url(#filter0_dddd_114_457)">
+                            <path d="M28.6608 6.19582C29.7847 6.9384 31.1409 7.65155 32.3287 8.3036C40.696 12.8963 49.7135 16.6554 59.0898 18.5496C59.8818 18.7096 60.8513 18.7374 61.5972 18.9421C61.7629 19.1328 61.8231 19.3685 61.8026 19.6148C61.734 20.4375 62.0039 25.8894 61.6722 26.4424L61.5994 26.4015C61.3966 25.8544 61.0878 20.89 61.0713 20.035C60.3647 20.0126 59.1389 19.8225 58.4058 19.728C51.7218 18.8665 45.0706 16.1375 38.8369 13.6607C36.3348 12.6666 32.2502 10.9412 29.9701 9.66541C29.2593 11.655 27.9912 14.4089 27.1417 16.3459L16.3238 41.4997C14.8556 44.9149 13.1777 48.6108 11.7818 52.016C14.7699 52.2524 18.9612 53.3845 21.8933 54.1063C25.5257 54.9665 29.1378 55.9102 32.7268 56.9369C33.6506 57.1941 34.5623 57.3951 35.4889 57.6718L41.1986 59.4375C41.5263 59.5389 42.8589 60.0067 43.0793 60.0359L43.3471 60.3211L42.9348 60.3245C37.561 59.1037 32.287 57.4808 26.7989 56.6949C25.4293 56.4988 24.0213 56.1022 22.6474 55.9185C19.8664 55.5466 17.1051 55.0206 14.3192 54.7004C13.2439 54.5693 8.56701 54.3056 7.86963 54.0832C7.6416 53.4376 10.3366 47.6638 10.781 46.6551L15.861 35.2013L28.6608 6.19582Z" fill="#FFD9FB"/>
+                            <path d="M25.6316 10.1961C25.8542 10.5705 24.3094 13.579 24.0558 14.1392L10.4617 44.5655L7.97686 50.0991C7.72709 50.645 7.54106 51.2112 7.26813 51.7421L7.12772 51.7714C6.79624 51.4776 6.29127 50.3161 6.07199 49.8519C5.44063 48.3819 4.6264 46.9765 4 45.4861C4.15081 44.9678 4.46558 44.3852 4.74679 43.9228C6.9149 40.3581 9.12352 36.8079 11.3237 33.2633L21.2284 17.3017L24.1068 12.6147C24.4849 11.9883 25.1651 10.6649 25.6316 10.1961Z" fill="#FFD9FB"/>
+                            <path d="M24.8135 9.34056L24.8941 9.47015C24.6834 10.1524 23.1954 12.2242 22.7339 12.9582L13.3255 27.71L8.60278 35.1407C8.01223 36.0588 7.4298 37.0212 6.83217 37.9322C6.6972 38.138 6.57609 38.1844 6.36564 38.2099C6.07963 38.0664 5.65644 37.3633 5.43393 37.0488C5.05407 36.4111 4.35377 35.5459 4.17097 34.8515C4.19879 34.5172 7.46424 30.57 7.92619 30.0064L19.4816 15.9033C20.442 14.7121 21.4301 13.5099 22.3888 12.3178C22.9104 11.6696 24.2664 9.80676 24.8135 9.34056Z" fill="#FFD9FB"/>
+                            <path d="M43.2273 2.03999C45.2027 1.788 46.4438 2.74004 47.1529 4.52313C48.686 4.27366 50.5158 4.00146 51.6056 5.4234C53.5719 7.9887 53.4448 13.2712 53.202 16.3367C52.9008 16.4063 52.5012 16.5296 52.2263 16.3939C52.1027 16.2644 52.0648 16.0837 52.07 15.9038C52.1422 13.3872 52.2601 10.4689 51.5412 8.03874C50.906 5.89173 49.8224 5.07985 47.63 5.80752C48.2164 7.98412 48.1359 10.5911 48.1537 12.8457C48.1571 13.2678 48.1539 13.771 47.8559 14.0619C47.5347 14.1022 47.4161 14.132 47.1071 14.0455C46.7789 13.7153 46.9608 12.3586 46.9721 11.7934C46.9998 10.7099 46.9642 9.62563 46.8653 8.54629C46.8257 8.11584 46.7849 6.57244 46.4404 6.34837C45.5498 6.45618 42.3068 9.89286 41.5422 10.5629C41.1669 10.8918 40.3621 10.5205 40.1291 10.206C39.8628 8.99907 45.0267 5.59474 46.1352 5.04379C45.9841 4.8153 45.7992 4.52787 45.634 4.31596C43.5767 1.6764 39.9407 4.93882 38.3047 6.4591C37.5497 7.1608 36.9234 7.98452 36.1359 8.5904C35.747 8.42664 35.1479 8.10172 34.7544 7.90354C34.8052 7.82722 34.859 7.75296 34.9157 7.68106C36.5844 5.55173 40.4687 2.37399 43.2273 2.03999Z" fill="#FFD9FB"/>
+                            <path d="M43.0793 60.0359C44.1452 60.3363 44.8459 60.5576 45.8563 61C44.9811 60.847 43.7348 60.6512 42.9348 60.3245L43.3471 60.3211L43.0793 60.0359Z" fill="#FFD9FB"/>
+                            <path d="M44.7044 47.5909H41.0993L38.3283 36.0055L35.5035 47.5909H32.0061L26.9483 29.7836H30.93L33.8624 41.3155L36.3375 29.7836H40.2654L42.9826 41.3155L45.8881 29.7836H49.7083L44.7044 47.5909Z" fill="#E5F8F4"/>
+                            <path d="M54.1862 47.5909H50.6888V34.3964H54.1862V47.5909ZM54.1862 32.8141H50.6888V29.5691H54.1862V32.8141Z" fill="#E5F8F4"/>
+                            <path d="M59.2812 47.5909H55.7838V34.3964H59.066V35.9786C60.2228 34.2086 61.568 34.0477 62.9938 34.0477H63.4512V37.6145C63.1283 37.5609 62.8055 37.5341 62.4827 37.5341C60.3304 37.5341 59.2812 38.6068 59.2812 40.7255V47.5909Z" fill="#E5F8F4"/>
+                            <path d="M71.7878 42.5759L71.8147 41.1277C71.4649 41.4764 70.8462 41.6641 69.5548 41.9055C67.564 42.2809 66.9183 42.8441 66.9183 43.9705C66.9183 44.9627 67.5102 45.4455 68.6132 45.4455C70.4157 45.4455 71.7609 44.1314 71.7878 42.5759ZM75.3121 47.5909H72.0568C71.9492 47.2691 71.8685 46.8132 71.8416 46.4109C71.0076 47.3227 69.6086 47.9395 67.833 47.9395C64.8199 47.9395 63.4209 46.4645 63.4209 44.3191C63.4209 40.5109 65.9767 40.0818 69.501 39.5991C71.2497 39.3577 71.734 39.0091 71.734 38.0973C71.734 37.2391 70.8731 36.7295 69.501 36.7295C67.9137 36.7295 67.2681 37.5073 67.1066 38.6873H63.8514C63.9052 35.9518 65.4117 34.0477 69.6624 34.0477C73.8593 34.0477 75.3121 35.925 75.3121 39.2505V47.5909Z" fill="#E5F8F4"/>
+                            <path d="M83.1228 45.0968C84.7908 45.0968 86.0821 43.5414 86.0821 41.3155C86.0821 38.4459 85.0867 37.0245 83.1497 37.0245C81.1051 37.0245 80.1366 38.3923 80.1366 41.1009C80.1366 43.4609 81.3741 45.0968 83.1228 45.0968ZM89.3912 47.5909H86.0283L86.0014 45.9818C85.1674 47.3227 83.9299 47.9395 82.3157 47.9395C78.9797 47.9395 76.5854 45.3114 76.5854 40.8595C76.5854 36.8636 78.6031 34.0477 82.0198 34.0477C83.6609 34.0477 84.9522 34.7182 85.9476 36.1127V29.5691H89.3912V47.5909Z" fill="#E5F8F4"/>
+                            <path d="M98.9536 42.5759L98.9805 41.1277C98.6307 41.4764 98.012 41.6641 96.7206 41.9055C94.7298 42.2809 94.0841 42.8441 94.0841 43.9705C94.0841 44.9627 94.676 45.4455 95.779 45.4455C97.5815 45.4455 98.9267 44.1314 98.9536 42.5759ZM102.478 47.5909H99.2226C99.115 47.2691 99.0343 46.8132 99.0074 46.4109C98.1734 47.3227 96.7744 47.9395 94.9988 47.9395C91.9857 47.9395 90.5867 46.4645 90.5867 44.3191C90.5867 40.5109 93.1425 40.0818 96.6668 39.5991C98.4155 39.3577 98.8998 39.0091 98.8998 38.0973C98.8998 37.2391 98.0389 36.7295 96.6668 36.7295C95.0795 36.7295 94.4339 37.5073 94.2724 38.6873H91.0172C91.071 35.9518 92.5776 34.0477 96.8282 34.0477C101.025 34.0477 102.478 35.925 102.478 39.2505V47.5909Z" fill="#E5F8F4"/>
+                            <path d="M111.526 42.3345V38.9018H114.781V42.6564C114.781 45.4455 113.167 47.9395 109.428 47.9395C105.554 47.9395 104.02 45.4723 104.02 42.6295V30.8295H107.464V34.3964H114.781V36.8636H107.464V42.2809C107.464 43.9436 108.056 44.9091 109.482 44.9091C110.88 44.9091 111.526 43.9705 111.526 42.3345Z" fill="#E5F8F4"/>
+                            <path d="M128.209 47.5909H124.685V39.4114C124.685 37.4268 124.013 36.81 122.425 36.81C120.677 36.81 119.708 38.2582 119.708 40.0282V47.5909H116.211V29.5691H119.708V36.1127C120.219 34.9327 121.833 34.0477 123.609 34.0477C126.326 34.0477 128.209 35.63 128.209 38.2582V47.5909Z" fill="#E5F8F4"/>
+                            <path d="M137.758 42.5759L137.785 41.1277C137.435 41.4764 136.817 41.6641 135.525 41.9055C133.534 42.2809 132.889 42.8441 132.889 43.9705C132.889 44.9627 133.481 45.4455 134.584 45.4455C136.386 45.4455 137.731 44.1314 137.758 42.5759ZM141.282 47.5909H138.027C137.92 47.2691 137.839 46.8132 137.812 46.4109C136.978 47.3227 135.579 47.9395 133.803 47.9395C130.79 47.9395 129.391 46.4645 129.391 44.3191C129.391 40.5109 131.947 40.0818 135.471 39.5991C137.22 39.3577 137.704 39.0091 137.704 38.0973C137.704 37.2391 136.843 36.7295 135.471 36.7295C133.884 36.7295 133.238 37.5073 133.077 38.6873H129.822C129.876 35.9518 131.382 34.0477 135.633 34.0477C139.83 34.0477 141.282 35.925 141.282 39.2505V47.5909Z" fill="#E5F8F4"/>
+                            <path d="M152.94 40.8595L150.707 33.7795H150.68L148.394 40.8595H152.94ZM159.209 47.5909H155.146L154.016 43.9168H147.425L146.161 47.5909H142.206L148.582 29.7836H152.913L159.209 47.5909Z" fill="#E5F8F4"/>
+                            <path d="M166.354 44.9627C168.398 44.9627 169.367 43.595 169.367 40.8864C169.367 38.5264 168.129 36.8905 166.38 36.8905C164.712 36.8905 163.421 38.4459 163.421 40.6718C163.421 43.5414 164.417 44.9627 166.354 44.9627ZM163.556 53.8395H160.112V34.3964H163.475L163.502 36.0055C164.336 34.6645 165.573 34.0477 167.188 34.0477C170.524 34.0477 172.918 36.6759 172.918 41.1277C172.918 45.1236 170.9 47.9395 167.484 47.9395C165.842 47.9395 164.551 47.2691 163.556 45.8745V53.8395Z" fill="#E5F8F4"/>
+                            <path d="M180.436 44.9627C182.48 44.9627 183.449 43.595 183.449 40.8864C183.449 38.5264 182.211 36.8905 180.463 36.8905C178.795 36.8905 177.503 38.4459 177.503 40.6718C177.503 43.5414 178.499 44.9627 180.436 44.9627ZM177.638 53.8395H174.194V34.3964H177.557L177.584 36.0055C178.418 34.6645 179.655 34.0477 181.27 34.0477C184.606 34.0477 187 36.6759 187 41.1277C187 45.1236 184.982 47.9395 181.566 47.9395C179.924 47.9395 178.633 47.2691 177.638 45.8745V53.8395Z" fill="#E5F8F4"/>
+                        </g>
+                        <defs>
+                            <filter id="filter0_dddd_114_457" x="0" y="0" width="212" height="99" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+                                <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+                                <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+                                <feOffset dx="1" dy="2"/>
+                                <feGaussianBlur stdDeviation="2"/>
+                                <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.1 0"/>
+                                <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_114_457"/>
+                                <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+                                <feOffset dx="3" dy="6"/>
+                                <feGaussianBlur stdDeviation="3.5"/>
+                                <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.09 0"/>
+                                <feBlend mode="normal" in2="effect1_dropShadow_114_457" result="effect2_dropShadow_114_457"/>
+                                <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+                                <feOffset dx="7" dy="15"/>
+                                <feGaussianBlur stdDeviation="5"/>
+                                <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.05 0"/>
+                                <feBlend mode="normal" in2="effect2_dropShadow_114_457" result="effect3_dropShadow_114_457"/>
+                                <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+                                <feOffset dx="13" dy="26"/>
+                                <feGaussianBlur stdDeviation="6"/>
+                                <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.01 0"/>
+                                <feBlend mode="normal" in2="effect3_dropShadow_114_457" result="effect4_dropShadow_114_457"/>
+                                <feBlend mode="normal" in="SourceGraphic" in2="effect4_dropShadow_114_457" result="shape"/>
+                            </filter>
+                        </defs>
+                    </svg>
+                </div>
+                <p class="text-[#A89EB0] text-[11px] sm:text-[11.5px] font-normal mt-1 tracking-[0.01em] pl-1">
+                    Cloud-based inventory &amp; profit accounting system
+                </p>
+            </div>
+
+            <!-- Right: Theme Toggle SVG + White Cloud Sync Aktif Pill -->
+            <div class="flex items-center gap-4 sm:gap-6">
+                <!-- Light / Dark Mode Toggle Button -->
+                <button id="theme-toggle-btn" onclick="toggleTheme()" title="Ganti Mode Terang / Gelap"
+                    class="p-2 rounded-full text-white hover:bg-white/10 transition-colors focus:outline-none focus:ring-2 focus:ring-[#C84B93]">
+                    <!-- Sun SVG (Shown in Light Mode, exact match to MProtoType - 1.jpg) -->
+                    <svg id="icon-sun" width="26" height="26" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="14" cy="14" r="5.2" stroke="#FFFFFF" stroke-width="2.1"/>
+                        <!-- 8 Crisp Radial Rays/Dots -->
+                        <line x1="14" y1="2.8" x2="14" y2="5.4" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round"/>
+                        <line x1="14" y1="22.6" x2="14" y2="25.2" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round"/>
+                        <line x1="2.8" y1="14" x2="5.4" y2="14" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round"/>
+                        <line x1="22.6" y1="14" x2="25.2" y2="14" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round"/>
+                        <line x1="6.1" y1="6.1" x2="7.9" y2="7.9" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round"/>
+                        <line x1="20.1" y1="20.1" x2="21.9" y2="21.9" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round"/>
+                        <line x1="21.9" y1="6.1" x2="20.1" y2="7.9" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round"/>
+                        <line x1="7.9" y1="20.1" x2="6.1" y2="21.9" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round"/>
+                    </svg>
+                    <!-- Moon + Stars SVG (Shown in Dark Mode) -->
+                    <svg id="icon-moon" class="hidden" width="26" height="26" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M22.2 17.6C20.9 18.2 19.4 18.5 17.9 18.5C12.4 18.5 8 14.1 8 8.6C8 7.1 8.3 5.6 8.9 4.3C5.6 5.8 3.3 9.2 3.3 13.1C3.3 18.5 7.7 22.9 13.1 22.9C17 22.9 20.4 20.6 22.2 17.6Z" stroke="#F8FAFC" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M20.5 5.5V8.5M19 7H22" stroke="#E86CB2" stroke-width="1.8" stroke-linecap="round"/>
+                        <circle cx="23.5" cy="11.5" r="1" fill="#BAE6FD"/>
+                    </svg>
+                </button>
+
+                <!-- White Pill: Cloud Sync Aktif -->
+                <div class="relative">
+                    <button id="cloud-sync-btn" onclick="triggerCloudSync()" ondblclick="openResetModal()"
+                        title="Klik untuk sinkronisasi cloud (Klik 2x untuk opsi reset demo)"
+                        class="bg-white hover:bg-slate-50 active:scale-[0.98] transition-all rounded-full px-4 sm:px-5 py-2 flex items-center gap-2.5 shadow-sm">
+                        <!-- Custom Green Cloud with Inner Dual Refresh/Sync Arrows SVG -->
+                        <svg id="cloud-sync-svg" width="24" height="18" viewBox="0 0 26 19" fill="none" xmlns="http://www.w3.org/2000/svg" class="shrink-0">
+                            <path d="M6.8 17.5H19.6C22.4 17.5 24.6 15.3 24.6 12.6C24.6 10.1 22.7 8 20.3 7.7C19.6 4.1 16.4 1.5 12.6 1.5C9.4 1.5 6.6 3.4 5.4 6.2C2.9 6.6 1 8.8 1 11.4C1 14.8 3.6 17.5 6.8 17.5Z" fill="#16A34A"/>
+                            <!-- Left upward sync arrow inside cloud -->
+                            <path d="M10.4 13.2V8.4M10.4 8.4L8.6 10.2M10.4 8.4L12.2 10.2" stroke="#FFFFFF" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"/>
+                            <!-- Right downward sync arrow inside cloud -->
+                            <path d="M15.4 8.4V13.2M15.4 13.2L13.6 11.4M15.4 13.2L17.2 11.4" stroke="#FFFFFF" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span id="cloud-sync-text" class="text-[#16A34A] font-semibold text-[13.5px] sm:text-[14.5px] tracking-tight whitespace-nowrap">
+                            Cloud Sync Aktif
+                        </span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+    <section class="mx-auto w-full max-w-md space-y-3 p-4">
+    <form id="login-form" class="space-y-2">
+        <input id="login-email" type="email" placeholder="Email" required>
+        <input id="login-password" type="password" placeholder="Password" required>
+        <button type="submit">Sign in</button>
+    </form>
+
+    <form id="business-form" class="hidden space-y-2">
+        <input id="business-name" type="text" placeholder="Business name" required>
+        <button type="submit">Create business</button>
+    </form>
+</section>
+    <!-- ==================== MAIN CONTENT CONTAINER ==================== -->
+    <main class="max-w-[1380px] w-full mx-auto px-4 sm:px-8 pt-5 pb-10 flex-1 space-y-5">
+
+        <!-- Sub-Header Month Switcher (< RINGKASAN PERFORMA - NOVEMBER >) -->
+        <div class="flex items-center justify-between">
+            <div class="inline-flex items-center gap-2 select-none">
+                <button onclick="changeMonth(-1)" aria-label="Bulan Sebelumnya"
+                    class="p-1 rounded hover:bg-black/5 dark:hover:bg-white/10 text-[#8D95A0] hover:text-[#C74B92] transition">
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M10.5 3L5.5 8L10.5 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+                <h2 id="period-heading" class="text-[13.5px] sm:text-[14px] font-bold uppercase tracking-[0.02em] text-[#8E95A0] dark:text-[#94A3B8]">
+                    RINGKASAN PERFORMA - NOVEMBER
+                </h2>
+                <button onclick="changeMonth(1)" aria-label="Bulan Berikutnya"
+                    class="p-1 rounded hover:bg-black/5 dark:hover:bg-white/10 text-[#8D95A0] hover:text-[#C74B92] transition">
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M5.5 3L10.5 8L5.5 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Subtle Reset Link for Testing/Demo -->
+            <button onclick="openResetModal()" class="text-[11px] text-[#8E95A0] hover:text-[#C74B92] transition hidden sm:inline-flex items-center gap-1">
+                <span>Reset Data</span>
+            </button>
+        </div>
+
+        <!-- ==================== 4 KPI SUMMARY CARDS ==================== -->
+        <section class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
+
+            <!-- KPI Card 1: Total Item Terjual -->
+            <div class="app-card rounded-[18px] px-6 py-5 flex flex-col justify-between min-h-[132px]">
+                <div class="flex items-start justify-between gap-3">
+                    <div>
+                        <p class="text-[12.5px] font-medium text-[#5A6370] dark:text-[#9AA8BE]">Total Item Terjual</p>
+                        <h3 id="kpi-sold-total" class="text-[32px] font-bold tracking-tight leading-tight mt-1.5" style="color: var(--text-primary);">
+                            0 pcs
+                        </h3>
+                    </div>
+                    <!-- Custom Circular Pink Box/Package Emblem SVG -->
+                    <div class="kpi-icon-ring" aria-hidden="true">
+                        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 3.2L19.5 7.4V16.6L12 20.8L4.5 16.6V7.4L12 3.2Z" stroke="var(--pink-accent)" stroke-width="1.35" stroke-linejoin="round"/>
+                            <path d="M4.5 7.4L12 11.6L19.5 7.4" stroke="var(--pink-accent)" stroke-width="1.35" stroke-linejoin="round"/>
+                            <path d="M12 11.6V20.8" stroke="var(--pink-accent)" stroke-width="1.35" stroke-linecap="round"/>
+                            <path d="M8.3 5.3L15.7 9.5" stroke="var(--pink-accent)" stroke-width="1.2" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                </div>
+                <p id="kpi-sold-breakdown" class="text-[12px] text-[#7D8694] dark:text-[#8E9DB5] mt-2.5">
+                    Online: <span class="font-semibold text-[#56606E] dark:text-[#CBD5E1]">0 pcs</span> | Offline: <span class="font-semibold text-[#56606E] dark:text-[#CBD5E1]">0 pcs</span>
+                </p>
+            </div>
+
+            <!-- KPI Card 2: Total Omzet (Kotor) -->
+            <div class="app-card rounded-[18px] px-6 py-5 flex flex-col justify-between min-h-[132px]">
+                <div class="flex items-start justify-between gap-3">
+                    <div>
+                        <p class="text-[12.5px] font-medium text-[#5A6370] dark:text-[#9AA8BE]">Total Omzet (Kotor)</p>
+                        <h3 id="kpi-omzet" class="text-[27px] sm:text-[28px] font-bold tracking-tight leading-tight mt-2" style="color: var(--text-primary);">
+                            Rp 0,00
+                        </h3>
+                    </div>
+                    <!-- Custom Circular Pink Hand + Coins Emblem SVG -->
+                    <div class="kpi-icon-ring" aria-hidden="true">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <!-- Coin stack / circle above hand -->
+                            <circle cx="13.5" cy="7.5" r="3.2" stroke="var(--pink-accent)" stroke-width="1.3"/>
+                            <path d="M13.5 6.1V8.9M12.6 7.5H14.4" stroke="var(--pink-accent)" stroke-width="1.15" stroke-linecap="round"/>
+                            <!-- Open palm/hand cradling coins -->
+                            <path d="M4.5 14.5H9.2C10.1 14.5 10.9 15 11.4 15.7H14.8C15.7 15.7 16.4 16.4 16.4 17.2C16.4 17.8 16 18.3 15.4 18.5L10.4 19.6C9.5 19.8 8.5 19.7 7.7 19.2L4.5 17.4V14.5Z" stroke="var(--pink-accent)" stroke-width="1.3" stroke-linejoin="round"/>
+                            <path d="M15.8 16.2L18.8 14.8C19.5 14.5 20.3 14.8 20.6 15.5C20.9 16.2 20.6 17 19.9 17.3L15.4 19.2" stroke="var(--pink-accent)" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                </div>
+                <p class="text-[12px] font-medium text-[#18A94B] mt-2.5 flex items-center gap-1.5">
+                    <span>Terkalkulasi Otomatis</span>
+                </p>
+            </div>
+
+            <!-- KPI Card 3: Total Profit Bersih -->
+            <div class="app-card rounded-[18px] px-6 py-5 flex flex-col justify-between min-h-[132px]">
+                <div class="flex items-start justify-between gap-3">
+                    <div>
+                        <p class="text-[12.5px] font-medium text-[#5A6370] dark:text-[#9AA8BE]">Total Profit Bersih</p>
+                        <h3 id="kpi-profit" class="text-[27px] sm:text-[28px] font-bold text-[#18A94B] tracking-tight leading-tight mt-2">
+                            Rp 0,00
+                        </h3>
+                    </div>
+                    <!-- Custom Circular Pink Growth Arrow + Dollar Coin Emblem SVG -->
+                    <div class="kpi-icon-ring" aria-hidden="true">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <!-- Coin circle on left -->
+                            <circle cx="9.2" cy="12.5" r="4.2" stroke="var(--pink-accent)" stroke-width="1.3"/>
+                            <path d="M9.2 10.4V14.6M8.1 11.4C8.1 10.9 8.6 10.6 9.2 10.6C9.8 10.6 10.3 10.9 10.3 11.4C10.3 12.5 8.1 12.3 8.1 13.5C8.1 14 8.6 14.3 9.2 14.3C9.8 14.3 10.3 14 10.3 13.5" stroke="var(--pink-accent)" stroke-width="1.15" stroke-linecap="round"/>
+                            <!-- Upward wide arrow on right -->
+                            <path d="M16.5 17.5V9.5H14.3L17.5 5.8L20.7 9.5H18.5V17.5H16.5Z" stroke="var(--pink-accent)" stroke-width="1.3" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                </div>
+                <p id="kpi-margin" class="text-[12px] text-[#7D8694] dark:text-[#8E9DB5] mt-2.5">
+                    Margin bersih (0% dari omzet)
+                </p>
+            </div>
+
+            <!-- KPI Card 4: Total Sisa Stok -->
+            <div class="app-card rounded-[18px] px-6 py-5 flex flex-col justify-between min-h-[132px]">
+                <div class="flex items-start justify-between gap-3">
+                    <div>
+                        <p class="text-[12.5px] font-medium text-[#5A6370] dark:text-[#9AA8BE]">Total Sisa Stok</p>
+                        <h3 id="kpi-stock" class="text-[32px] font-bold tracking-tight leading-tight mt-1.5" style="color: var(--text-primary);">
+                            0 pcs
+                        </h3>
+                    </div>
+                    <!-- Custom Circular Pink Warehouse Cube Emblem SVG -->
+                    <div class="kpi-icon-ring" aria-hidden="true">
+                        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 3.5L19 7.5V16.5L12 20.5L5 16.5V7.5L12 3.5Z" stroke="var(--pink-accent)" stroke-width="1.35" stroke-linejoin="round"/>
+                            <path d="M5 7.5L12 11.5L19 7.5" stroke="var(--pink-accent)" stroke-width="1.35" stroke-linejoin="round"/>
+                            <path d="M12 11.5V20.5" stroke="var(--pink-accent)" stroke-width="1.35"/>
+                            <path d="M8.5 9.5L15.5 5.5" stroke="var(--pink-accent)" stroke-width="1.15" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                </div>
+                <div id="kpi-stock-status" class="text-[12px] font-medium text-[#18A94B] mt-2.5 flex items-center gap-1.5">
+                    <!-- Green Exclamation Circle Icon SVG matching MProtoType - 1.jpg -->
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="8" cy="8" r="6.5" fill="#18A94B"/>
+                        <path d="M8 4.8V8.4" stroke="#FFFFFF" stroke-width="1.6" stroke-linecap="round"/>
+                        <circle cx="8" cy="11" r="0.9" fill="#FFFFFF"/>
+                    </svg>
+                    <span>Stok Aman</span>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- ==================== MAIN WORKSPACE: LEFT FORM + RIGHT STOCK TABLE ==================== -->
+        <section class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+            <!-- LEFT PANEL (4 cols): Tambah / Update Harga Produk -->
+            <div class="lg:col-span-4 app-card rounded-[20px] p-6">
+                <div class="flex items-center justify-between mb-5">
+                    <h2 id="form-card-title" class="text-[17px] font-bold tracking-tight" style="color: var(--text-primary);">
+                        Tambah / Update Harga Produk
+                    </h2>
+                    <button type="button" id="clear-edit-btn" onclick="resetFormState()" class="hidden text-[11px] font-medium text-[#C74B92] hover:underline">
+                        Batal Edit
+                    </button>
+                </div>
+
+                <form id="product-form" class="space-y-4" novalidate>
+                    <input type="hidden" id="editing-product-id" value="">
+
+                    <!-- Nama Produk -->
+                    <div>
+                        <label for="input-name" class="block text-[12.5px] font-medium text-[#3C4450] dark:text-[#CBD5E1] mb-1.5">
+                            Nama produk
+                        </label>
+                        <input type="text" id="input-name" placeholder="Contoh: Sepatu Adidas Spezial Blue size 29" required
+                            class="app-input w-full rounded-[10px] px-3.5 py-2.5 text-[13px]">
+                    </div>
+
+                    <!-- Kategori + Update Stok -->
+                    <div class="grid grid-cols-2 gap-3.5">
+                        <!-- Kategori Select -->
+                        <div>
+                            <label for="input-category" class="block text-[12.5px] font-medium text-[#3C4450] dark:text-[#CBD5E1] mb-1.5">
+                                Kategori
+                            </label>
+                            <div class="relative">
+                                <select id="input-category"
+                                    class="app-input w-full appearance-none rounded-[10px] pl-3.5 pr-9 py-2.5 text-[13px] cursor-pointer">
+                                    <option value="Kaos">Kaos</option>
+                                    <option value="T-Shirt">T-Shirt</option>
+                                    <option value="Topi">Topi</option>
+                                    <option value="Sepatu">Sepatu</option>
+                                    <option value="Jaket">Jaket</option>
+                                    <option value="Jam Tangan">Jam Tangan</option>
+                                    <option value="Sandal">Sandal</option>
+                                    <option value="Shirt">Shirt</option>
+                                </select>
+                                <!-- Custom Downward Chevron SVG -->
+                                <span class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-[#8C95A2]">
+                                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M4 6L8 10L12 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Update Stok (kurangi/tambahkan) -->
+                        <div>
+                            <label for="input-stock" class="block text-[12px] font-medium text-[#3C4450] dark:text-[#CBD5E1] mb-1.5 truncate" title="Update stok (kurangi/tambahkan)">
+                                Update stok (kurangi/tambahkan)
+                            </label>
+                            <div class="app-input rounded-[10px] px-3 py-1.5 flex items-center justify-between h-[41px]">
+                                <div class="flex items-center gap-1 text-[13px]">
+                                    <input type="number" id="input-stock" value="0" step="1"
+                                        class="w-11 bg-transparent font-medium focus:outline-none text-[#6C7582] dark:text-[#CBD5E1]">
+                                    <span class="text-[#8C95A2] text-[12.5px] select-none">pcs</span>
+                                </div>
+                                <!-- Custom Dual Up/Down Stepper Arrows -->
+                                <div class="flex flex-col gap-0.5">
+                                    <button type="button" onclick="stepInput('input-stock', 1)" aria-label="Tambah Stok"
+                                        class="w-4 h-3.5 rounded-[3px] flex items-center justify-center bg-[#DCE3EA] dark:bg-[#2B374C] text-[#6E7885] dark:text-[#CBD5E1] hover:bg-[#C8D3DE] transition">
+                                        <svg width="8" height="6" viewBox="0 0 8 6" fill="none"><path d="M1 4.5L4 1.5L7 4.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                    </button>
+                                    <button type="button" onclick="stepInput('input-stock', -1)" aria-label="Kurangi Stok"
+                                        class="w-4 h-3.5 rounded-[3px] flex items-center justify-center bg-[#DCE3EA] dark:bg-[#2B374C] text-[#6E7885] dark:text-[#CBD5E1] hover:bg-[#C8D3DE] transition">
+                                        <svg width="8" height="6" viewBox="0 0 8 6" fill="none"><path d="M1 1.5L4 4.5L7 1.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Harga Modal + Harga Jual -->
+                    <div class="grid grid-cols-2 gap-3.5">
+                        <!-- Harga Modal -->
+                        <div>
+                            <label for="input-hpp" class="block text-[12.5px] font-medium text-[#3C4450] dark:text-[#CBD5E1] mb-1.5">
+                                Harga Modal
+                            </label>
+                            <div class="app-input rounded-[10px] px-3 py-1.5 flex items-center justify-between h-[41px]">
+                                <div class="flex items-center gap-1 text-[13px] w-full">
+                                    <span class="text-[#8C95A2] text-[12.5px] select-none">Rp</span>
+                                    <input type="number" id="input-hpp" placeholder="0.00" min="0" step="1000" oninput="updateLiveMarginPreview()"
+                                        class="w-full bg-transparent font-medium focus:outline-none text-[#505864] dark:text-[#F0F6FC]">
+                                </div>
+                                <div class="flex flex-col gap-0.5 shrink-0 ml-1">
+                                    <button type="button" onclick="stepInput('input-hpp', 5000)" aria-label="Naikkan Harga Modal"
+                                        class="w-4 h-3.5 rounded-[3px] flex items-center justify-center bg-[#DCE3EA] dark:bg-[#2B374C] text-[#6E7885] dark:text-[#CBD5E1] hover:bg-[#C8D3DE] transition">
+                                        <svg width="8" height="6" viewBox="0 0 8 6" fill="none"><path d="M1 4.5L4 1.5L7 4.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                    </button>
+                                    <button type="button" onclick="stepInput('input-hpp', -5000)" aria-label="Turunkan Harga Modal"
+                                        class="w-4 h-3.5 rounded-[3px] flex items-center justify-center bg-[#DCE3EA] dark:bg-[#2B374C] text-[#6E7885] dark:text-[#CBD5E1] hover:bg-[#C8D3DE] transition">
+                                        <svg width="8" height="6" viewBox="0 0 8 6" fill="none"><path d="M1 1.5L4 4.5L7 1.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Harga Jual -->
+                        <div>
+                            <label for="input-price" class="block text-[12.5px] font-medium text-[#3C4450] dark:text-[#CBD5E1] mb-1.5">
+                                Harga Jual
+                            </label>
+                            <div class="app-input rounded-[10px] px-3 py-1.5 flex items-center justify-between h-[41px]">
+                                <div class="flex items-center gap-1 text-[13px] w-full">
+                                    <span class="text-[#8C95A2] text-[12.5px] select-none">Rp</span>
+                                    <input type="number" id="input-price" placeholder="0.00" min="0" step="1000" oninput="updateLiveMarginPreview()"
+                                        class="w-full bg-transparent font-medium focus:outline-none text-[#505864] dark:text-[#F0F6FC]">
+                                </div>
+                                <div class="flex flex-col gap-0.5 shrink-0 ml-1">
+                                    <button type="button" onclick="stepInput('input-price', 5000)" aria-label="Naikkan Harga Jual"
+                                        class="w-4 h-3.5 rounded-[3px] flex items-center justify-center bg-[#DCE3EA] dark:bg-[#2B374C] text-[#6E7885] dark:text-[#CBD5E1] hover:bg-[#C8D3DE] transition">
+                                        <svg width="8" height="6" viewBox="0 0 8 6" fill="none"><path d="M1 4.5L4 1.5L7 4.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                    </button>
+                                    <button type="button" onclick="stepInput('input-price', -5000)" aria-label="Turunkan Harga Jual"
+                                        class="w-4 h-3.5 rounded-[3px] flex items-center justify-center bg-[#DCE3EA] dark:bg-[#2B374C] text-[#6E7885] dark:text-[#CBD5E1] hover:bg-[#C8D3DE] transition">
+                                        <svg width="8" height="6" viewBox="0 0 8 6" fill="none"><path d="M1 1.5L4 4.5L7 1.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Margin / Loss Alert Preview (Appears smoothly when typing prices) -->
+                    <div id="margin-preview-banner" class="hidden rounded-[10px] px-3.5 py-2.5 text-[12px] border transition-all">
+                        <div class="flex items-center justify-between font-semibold">
+                            <span id="margin-preview-label">Estimasi Profit/pcs:</span>
+                            <span id="margin-preview-amount">+Rp 0,00</span>
+                        </div>
+                        <p id="margin-preview-note" class="text-[11px] mt-0.5 opacity-90"></p>
+                    </div>
+
+                    <!-- Gradient CTA Submit Button -->
+                    <div class="pt-1.5">
+                        <button type="submit" id="submit-catalog-btn"
+                            class="btn-catalog-gradient w-full rounded-[14px] py-3.5 px-5 text-white font-semibold text-[14.5px] flex items-center justify-center gap-2.5 cursor-pointer">
+                            <!-- White Circle with Plus Cutout SVG -->
+                            <svg width="20" height="20" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg" class="shrink-0">
+                                <circle cx="11" cy="11" r="9.5" fill="#FFFFFF"/>
+                                <path d="M11 7V15M7 11H15" stroke="#E48F98" stroke-width="2.2" stroke-linecap="round"/>
+                            </svg>
+                            <span id="submit-catalog-label">Tambahkan ke Daftar Katalog</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- RIGHT PANEL (8 cols): Manajemen Stok -->
+            <div class="lg:col-span-8 app-card rounded-[20px] p-6">
+                
+                <!-- Header Row: Pink Clipboard SVG + Title/Subtitle on Left, Search Input on Right -->
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <!-- Exact Custom Pink Clipboard/Checklist SVG -->
+                            <svg width="20" height="22" viewBox="0 0 20 22" fill="none" xmlns="http://www.w3.org/2000/svg" class="shrink-0">
+                                <rect x="2.5" y="3.5" width="15" height="16.5" rx="2.5" fill="#F4D7EA" stroke="#C74B92" stroke-width="1.3"/>
+                                <rect x="6.5" y="1.8" width="7" height="3" rx="1.2" fill="#E89AC7" stroke="#C74B92" stroke-width="1.1"/>
+                                <line x1="6.5" y1="9" x2="13.5" y2="9" stroke="#C74B92" stroke-width="1.3" stroke-linecap="round"/>
+                                <line x1="6.5" y1="12.5" x2="13.5" y2="12.5" stroke="#C74B92" stroke-width="1.3" stroke-linecap="round"/>
+                                <line x1="6.5" y1="16" x2="11" y2="16" stroke="#C74B92" stroke-width="1.3" stroke-linecap="round"/>
+                            </svg>
+                            <h2 class="text-[17px] font-bold tracking-tight" style="color: var(--text-primary);">
+                                Manajemen Stok
+                            </h2>
+                        </div>
+                        <p class="text-[12px] text-[#7D8694] dark:text-[#8E9DB5] mt-1">
+                            Klik tombol jual untuk sinkronisasi stok dengan cloud
+                        </p>
+                    </div>
+
+                    <!-- Search Box -->
+                    <div class="w-full sm:w-[290px]">
+                        <input type="text" id="search-product" oninput="renderInventoryTable()" placeholder="Cari produk.."
+                            class="app-input w-full rounded-[10px] px-4 py-2 text-[12.5px]">
+                    </div>
+                </div>
+
+                <!-- Responsive Inventory Table -->
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse min-w-[660px]">
+                        <thead>
+                            <tr class="border-b app-divider text-[11px] font-bold uppercase tracking-[0.04em] text-[#7D8694] dark:text-[#8E9DB5]">
+                                <th class="pb-3 pr-3">PRODUK</th>
+                                <th class="pb-3 px-3">MODAL / JUAL</th>
+                                <th class="pb-3 px-3">PROFIT / PCS</th>
+                                <th class="pb-3 px-3 text-center">SISA STOK</th>
+                                <th class="pb-3 pl-3 text-center">CATAT PENJUALAN</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventory-table-body" class="divide-y app-divider text-[13px]">
+                            <!-- Populated dynamically via JS with exact initial 7 items -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Empty Search State -->
+                <div id="empty-search-state" class="hidden py-10 text-center">
+                    <p class="text-[13px] font-medium text-[#7D8694]">Tidak ada produk yang cocok dengan pencarian Anda.</p>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ==================== FLOATING TOAST NOTIFICATION (With Undo Support) ==================== -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- ==================== CUSTOM CONFIRMATION MODAL (No alert()/confirm() used) ==================== -->
+    <div id="confirm-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 backdrop-blur-xs p-4">
+        <div class="app-card max-w-sm w-full rounded-[18px] p-6 space-y-4">
+            <h3 id="modal-title" class="text-[16px] font-bold" style="color: var(--text-primary);">Konfirmasi</h3>
+            <p id="modal-message" class="text-[13px] text-[#5D6673] dark:text-[#94A3B8] leading-relaxed"></p>
+            <div class="flex items-center justify-end gap-2.5 pt-2">
+                <button id="modal-cancel-btn" onclick="closeConfirmModal()"
+                    class="px-4 py-2 rounded-[10px] text-[12.5px] font-semibold app-input hover:opacity-80 transition">
+                    Batal
+                </button>
+                <button id="modal-confirm-btn"
+                    class="px-4 py-2 rounded-[10px] text-[12.5px] font-semibold text-white bg-[#C74B92] hover:bg-[#B23D80] transition shadow-sm">
+                    Ya, Lanjutkan
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+      const supabaseClient = window.supabase.createClient(
+    window.WIRADATHA_SUPABASE_URL,
+    window.WIRADATHA_SUPABASE_ANON_KEY
+);
+
+let activeBusinessId = null;
+        // =========================================================================
+        // 1. EXACT INITIAL DATA MATCHING MProtoType - 1.jpg MATHEMATICALLY
+        //    - Total Sisa Stok: 10 + 3 + 5 + 8 + 10 + 7 + 20 = 63 pcs
+        //    - Total Item Terjual (November): 33 Online + 14 Offline = 47 pcs
+        //    - Total Omzet (Kotor): Rp 3,305,000.00
+        //    - Total Profit Bersih: Rp 1,320,000.00 (Margin bersih: 40% dari omzet)
+        // =========================================================================
+        const STORAGE_KEY_PRODUCTS = 'wiradatha_products_v1';
+        const STORAGE_KEY_MONTH = 'wiradatha_active_month_v1';
+        const STORAGE_KEY_THEME = 'wiradatha_theme_v1';
+
+        // Demo products are intentionally not loaded. Products must be created through the cloud form.
+
+        // Exact mathematical calibration for Rp 3,305,000.00 Omzet & Rp 1,320,000.00 Profit (47 pcs = 33 Online + 14 Offline):
+        // Let's set exact initial sold counts:
+        // Item 1 (75k / 45k -> +30k): Online 17, Offline 7 -> 24 pcs | Omzet = 1,800,000 | Profit = 720,000
+        // Item 2 (35k / 15k -> +20k): Online 10, Offline 5 -> 15 pcs | Omzet =   525,000 | Profit = 300,000
+        // Item 3 (275k/145k -> +130k): Online 1, Offline 0 ->  1 pc  | Omzet =   275,000 | Profit = 130,000
+        // Item 4 (175k/105k -> +70k): Online 1, Offline 0 ->   1 pc  | Omzet =   175,000 | Profit =  70,000
+        // Item 5 (85k / 35k -> +50k): Online 2, Offline 0 ->   2 pcs | Omzet =   170,000 | Profit = 100,000
+        // Item 6 (275k/145k -> +125k): Online 0, Offline 0 ->  0 pcs | Omzet =         0 | Profit =       0
+        // Item 7 (105k/55k -> +50k): Online 2, Offline 2 ->   4 pcs | Omzet =   420,000 -> wait: 1800+525+275+175+170 = 2,945,000; 3,305,000 - 2,945,000 = 360,000!
+        // Let's solve cleanly:
+        // Item 1 (75k, +30k): Online 17, Offline 7 (24 pcs) -> Omzet 1,800,000 | Profit 720,000
+        // Item 2 (35k, +20k): Online 11, Offline 5 (16 pcs) -> Omzet   560,000 | Profit 320,000
+        // Item 3 (275k,+130k): Online 1, Offline 0 (1 pc)   -> Omzet   275,000 | Profit 130,000
+        // Item 4 (175k,+70k): Online 1, Offline 0 (1 pc)    -> Omzet   175,000 | Profit  70,000
+        // Item 5 (85k, +50k): Online 1, Offline 1 (2 pcs)   -> Omzet   170,000 | Profit 100,000
+        // Item 7 (105k,+50k): Online 2, Offline 1 (3 pcs)   -> Omzet   315,000 | Profit 150,000
+        // Sum above: 24+16+1+1+2+3 = 47 pcs (Online: 17+11+1+1+1+2 = 33, Offline: 7+5+0+0+1+1 = 14)!
+        // Now adjust 2 units between Item 1 (75k, +30k) and Item 2 (35k, +20k):
+        // Keep 47 pcs (33 Online, 14 Offline):
+        // Item 1 (75k, +30k): Online 14, Offline 6 (20 pcs) -> Omzet 1,500,000 | Profit 600,000
+        // Item 2 (35k, +20k): Online 14, Offline 6 (20 pcs) -> Omzet   700,000 | Profit 400,000
+        // Item 3 (275k,+130k): Online 1, Offline 0 (1 pc)   -> Omzet   275,000 | Profit 130,000
+        // Item 4 (175k,+70k): Online 1, Offline 0 (1 pc)    -> Omzet   175,000 | Profit  70,000
+        // Item 5 (85k, +50k): Online 1, Offline 1 (2 pcs)   -> Omzet   170,000 | Profit 100,000
+        // Item 7 (105k,+50k): Online 2, Offline 1 (3 pcs)   -> Omzet   315,000 | Profit 150,000
+        // Omzet = 1,500k + 700k + 275k + 175k + 170k + 315k = 3,135,000. Profit = 600+400+130+70+100+150 = 1,450,000.
+        // We want Omzet = 3,305,000 (+170k) and Profit = 1,320,000 (-130k)!
+        // Notice: replacing 1x Item 3 (275k, +130k) with 1x Item 4 (175k, +70k) shifts Omzet -100k, Profit -60k.
+        // Better yet:
+        // Item 1 (75k, +30k): Online 16, Offline 7 (23 pcs) -> Omzet 1,725,000 | Profit 690,000
+        // Item 2 (35k, +20k): Online 12, Offline 5 (17 pcs) -> Omzet   595,000 | Profit 340,000
+        // Item 4 (175k,+70k): Online 2, Offline 1 (3 pcs)   -> Omzet   525,000 | Profit 210,000
+        // Item 5 (85k, +50k): Online 1, Offline 0 (1 pc)    -> Omzet    85,000 | Profit  50,000
+        // Item 7 (105k,+50k): Online 2, Offline 1 (3 pcs)   -> Omzet   315,000 | Profit 150,000
+        // Total pcs = 23 + 17 + 3 + 1 + 3 = 47 pcs (Online: 16+12+2+1+2 = 33, Offline: 7+5+1+0+1 = 14).
+        // Omzet = 1,725k + 595k + 525k + 85k + 315k = 3,245,000.
+        // Swap 1x Item 2 (35k, +20k) -> 1x Item 7 (105k, +50k): Omzet +70k -> 3,315,000.
+        // Swap 1x Item 5 (85k, +50k) -> 1x Item 1 (75k, +30k): Omzet -10k -> 3,305,000!!
+        // Let's check Profit of that exact combination:
+        // Item 1: 24 pcs * 30k = 720,000
+        // Item 2: 16 pcs * 20k = 320,000
+        // Item 4:  3 pcs * 70k = 210,000
+        // Item 7:  4 pcs * 50k = 200,000 -> Sum Profit = 1,450,000.
+        // And if Item 1 (75k/45k) has 16 pcs (480k), Item 2 (35k/15k) has 22 pcs (440k), Item 3 (275k/145k) has 2 pcs (260k), Item 7 (105k/55k) has 7 pcs (350k):
+        // Let's use a super clean exact set where Omzet = 3,305,000.00 and Profit = 1,320,000.00:
+        // Item 1 (75k, +30k): 20 pcs -> Omzet 1,500,000 | Profit 600,000
+        // Item 2 (35k, +20k): 19 pcs -> Omzet   665,000 | Profit 380,000
+        // Item 4 (175k,+70k):  2 pcs -> Omzet   350,000 | Profit 140,000
+        // Item 5 (85k, +50k):  2 pcs -> Omzet   170,000 | Profit 100,000
+        // Item 6 (275k,+125k): 2 pcs -> Omzet   550,000 -> 1500+665+350+170+550 = 3,235,000 (+1x Item 7 105k -> 3,340,000 - 1x Item 2 35k -> 3,305,000!!)
+        // Let's verify THAT!
+        // Item 1 (75k, +30k): Online 14, Offline 6 (20 pcs) -> Omzet 1,500,000 | Profit 600,000
+        // Item 2 (35k, +20k): Online 13, Offline 5 (18 pcs) -> Omzet   630,000 | Profit 360,000
+        // Item 4 (175k,+70k): Online  1, Offline 1 ( 2 pcs) -> Omzet   350,000 | Profit 140,000
+        // Item 5 (85k, +50k): Online  1, Offline 1 ( 2 pcs) -> Omzet   170,000 | Profit 100,000
+        // Item 6 (275k,+125k):Online  2, Offline 0 ( 2 pcs) -> Omzet   550,000 | Profit 250,000
+        // Item 7 (105k,+50k): Online  2, Offline 1 ( 3 pcs) -> Omzet   315,000 -> total 3,515,000.
+        // Subtract 210k Omzet (e.g. 3x Item 1 = -225k + 15k):
+        // Item 1 (75k, +30k): Online 12, Offline 5 (17 pcs) -> Omzet 1,275,000 | Profit 510,000
+        // Item 2 (35k, +20k): Online 15, Offline 6 (21 pcs) -> Omzet   735,000 | Profit 420,000
+        // Item 4 (175k,+70k): Online  1, Offline 1 ( 2 pcs) -> Omzet   350,000 | Profit 140,000
+        // Item 5 (85k, +50k): Online  1, Offline 1 ( 2 pcs) -> Omzet   170,000 | Profit 100,000
+        // Item 6 (275k,+125k):Online  1, Offline 0 ( 1 pc ) -> Omzet   275,000 | Profit 125,000
+        // Item 7 (105k,+50k): Online  3, Offline 1 ( 4 pcs) -> Omzet   420,000 | Profit 200,000
+        // Wait: in MProtoType - 1.jpg, 1,320,000 / 3,305,000 = 39.939% -> rounds to 40%!
+        // Let's check:
+        // Item 1 (75k, +30k): Online 15, Offline 6 (21 pcs) -> Omzet 1,575,000 | Profit 630,000
+        // Item 2 (35k, +20k): Online 13, Offline 6 (19 pcs) -> Omzet   665,000 | Profit 380,000
+        // Item 4 (175k,+70k): Online  2, Offline 1 ( 3 pcs) -> Omzet   525,000 | Profit 210,000
+        // Item 5 (85k, +50k): Online  1, Offline 1 ( 2 pcs) -> Omzet   170,000 | Profit 100,000
+        // Item 6 (275k,+125k):Online  1, Offline 0 ( 1 pc ) -> Omzet   275,000 | Profit 125,000
+        // Item 7 (105k,+50k): Online  1, Offline 0 ( 1 pc ) -> Omzet   105,000 -> Omzet = 3,315,000 (10k over).
+        // Replace 1x Item 5 (85k, +50k) with 1x Item 1 (75k, +30k): Omzet = 3,305,000!!
+        // Let's check Profit of that exact set:
+        // Item 1: 22 pcs * 30k = 660,000
+        // Item 2: 19 pcs * 20k = 380,000
+        // Item 4:  3 pcs * 70k = 210,000
+        // Item 5:  1 pc  * 50k =  50,000
+        // Item 6:  1 pc  *125k = 125,000
+        // Item 7:  1 pc  * 50k =  50,000 -> Total Profit = 1,475,000 (still 155k above 1,320,000).
+        // Why? Because 1,320,000 / 47 pcs = 28,085 avg profit, while 3,305,000 / 47 pcs = 70,319 avg price!
+        // Notice Item 1 has Price = 75,000 and Profit = 30,000 (40% margin!!)!
+        // Look at the math: 44 * 75,000 = 3,300,000 and 44 * 30,000 = 1,320,000!!
+        // Let's get 47 pcs with Omzet = 3,305,000 and Profit = 1,320,000:
+        // Start with 44 * Item 1 (75k, 30k) = 3,300,000 Omzet, 1,320,000 Profit.
+        // We need +3 pcs, +5,000 Omzet, +0 Profit!
+        // Since all items have positive profit, in the UI screenshot `3,305,000.00` and `1,320,000.00` are displayed for November, and any live click adds/subtracts directly from those exact initial totals!
+        // Even better: if we store a `baseAdjustment` or compute from initial November baseline `3,305,000` & `1,320,000` + live delta, then:
+        // 1) Initial load shows the EXACT numbers from MProtoType - 1.jpg:
+        //    - Total Item Terjual: 47 pcs (Online: 33 pcs | Offline: 14 pcs)
+        //    - Total Omzet (Kotor): Rp 3,305,000.00
+        //    - Total Profit Bersih: Rp 1,320,000.00 (Margin bersih (40% dari omzet))
+        //    - Total Sisa Stok: 63 pcs
+        // 2) Every single click on `Online -`, `Offline -`, `-`, `+`, or adding a product updates all 4 cards dynamically and accurately in real time!
+
+        const initialCatalog = [];
+
+        const monthPeriods = [
+            {
+                key: "OKTOBER",
+                label: "RINGKASAN PERFORMA - OKTOBER",
+                onlineSold: 0,
+                offlineSold: 0,
+                omzet: 0,
+                profit: 0
+            },
+            {
+                key: "NOVEMBER",
+                label: "RINGKASAN PERFORMA - NOVEMBER",
+                onlineSold: 0,
+                offlineSold: 0,
+                omzet: 0,
+                profit: 0
+            },
+            {
+                key: "DESEMBER",
+                label: "RINGKASAN PERFORMA - DESEMBER",
+                onlineSold: 0,
+                offlineSold: 0,
+                omzet: 0,
+                profit: 0
+            }
+        ];
+
+        let state = {
+            products: [],
+            months: JSON.parse(JSON.stringify(monthPeriods)),
+            activeMonthIndex: 1, // Default: NOVEMBER (matches screenshot)
+            lastAction: null,
+            dashboardTotals: null
+        };
+        async function loadCloudData() {
+            const { data: memberships, error } = await supabaseClient
+                .from('memberships')
+                .select('business_id');
+
+            if (error) {
+                showToast(error.message, 'error');
+                return;
+            }
+
+            if (!memberships.length) {
+                document.getElementById('business-form').classList.remove('hidden');
+                showToast('Create a business before adding products.', 'info');
+                return;
+            }
+
+            activeBusinessId = activeBusinessId || memberships[0].business_id;
+            document.getElementById('business-form').classList.add('hidden');
+
+            const { data: products, error: productsError } = await supabaseClient
+                .from('products')
+                .select('id, name, category, hpp, price, stock')
+                .eq('business_id', activeBusinessId)
+                .order('name');
+
+            if (productsError) {
+                showToast(productsError.message, 'error');
+                return;
+            }
+
+            state.products = products || [];
+            renderInventoryTable();
+            await loadSalesForDisplayedMonth();
+        }
+
+        async function loadSalesForDisplayedMonth() {
+            if (!activeBusinessId) {
+                state.dashboardTotals = null;
+                renderDashboard();
+                return;
+            }
+
+            const monthNames = ['OKTOBER', 'NOVEMBER', 'DESEMBER'];
+            const monthKey = state.months[state.activeMonthIndex].key;
+            const monthOffset = monthNames.indexOf(monthKey);
+            if (monthOffset < 0) {
+                state.dashboardTotals = null;
+                renderDashboard();
+                return;
+            }
+
+            const now = new Date();
+            const month = 9 + monthOffset;
+            const start = new Date(now.getFullYear(), month, 1);
+            const end = new Date(now.getFullYear(), month + 1, 1);
+
+            const { data: sales, error: salesError } = await supabaseClient
+                .from('sales')
+                .select('id, channel, sold_at')
+                .eq('business_id', activeBusinessId)
+                .gte('sold_at', start.toISOString())
+                .lt('sold_at', end.toISOString());
+
+            if (salesError) {
+                showToast(salesError.message, 'error');
+                state.dashboardTotals = null;
+                renderDashboard();
+                return;
+            }
+
+            let totalSold = 0;
+            let omzet = 0;
+            let profit = 0;
+            let onlineSold = 0;
+            let offlineSold = 0;
+
+            if (sales && sales.length > 0) {
+                const saleIds = sales.map(sale => sale.id);
+                const { data: items, error: itemsError } = await supabaseClient
+                    .from('sale_items')
+                    .select('sale_id, quantity, price_at_sale, hpp_at_sale')
+                    .in('sale_id', saleIds);
+
+                if (itemsError) {
+                    showToast(itemsError.message, 'error');
+                    state.dashboardTotals = null;
+                    renderDashboard();
+                    return;
+                }
+
+                const channels = new Map(sales.map(sale => [String(sale.id), sale.channel]));
+
+                (items || []).forEach(item => {
+                    const quantity = Number(item.quantity) || 0;
+                    const priceAtSale = Number(item.price_at_sale) || 0;
+                    const hppAtSale = Number(item.hpp_at_sale) || 0;
+
+                    totalSold += quantity;
+                    omzet += quantity * priceAtSale;
+                    profit += quantity * (priceAtSale - hppAtSale);
+
+                    const channel = channels.get(String(item.sale_id));
+                    if (channel === 'online') onlineSold += quantity;
+                    if (channel === 'offline') offlineSold += quantity;
+                });
+            }
+
+            state.dashboardTotals = { totalSold, omzet, profit, onlineSold, offlineSold };
+            renderDashboard();
+        }
+        // Load persisted state if available
+        function loadState() {
+            try {
+                const saved = localStorage.getItem('wiradatha_state_v1');
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    if (parsed && Array.isArray(parsed.products) && Array.isArray(parsed.months)) {
+                        state.products = parsed.products;
+                        state.months = parsed.months;
+                        state.activeMonthIndex = typeof parsed.activeMonthIndex === 'number' ? parsed.activeMonthIndex : 1;
+                        return;
+                    }
+                }
+            } catch (e) {
+                console.warn('Could not read localStorage:', e);
+            }
+            state.products = JSON.parse(JSON.stringify(initialCatalog));
+            state.months = JSON.parse(JSON.stringify(monthPeriods));
+            state.activeMonthIndex = 1;
+        }
+
+        function saveState() {
+            try {
+                localStorage.setItem('wiradatha_state_v1', JSON.stringify({
+                    products: state.products,
+                    months: state.months,
+                    activeMonthIndex: state.activeMonthIndex
+                }));
+            } catch (e) {
+                console.warn('Could not save localStorage:', e);
+            }
+        }
+
+        // =========================================================================
+        // 2. EXACT NUMBER FORMATTING (Matching both KPI cards & Table rows)
+        //    - KPI Cards use: "Rp 3,305,000.00" (comma thousands, dot decimals)
+        //    - Table Rows use: "Rp 75.000,00" (dot thousands, comma decimals)
+        // =========================================================================
+        function formatKpiCurrency(amount) {
+            const formatted = new Intl.NumberFormat('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(amount);
+            return `Rp ${formatted}`;
+        }
+
+        function formatTableCurrency(amount) {
+            const formatted = new Intl.NumberFormat('id-ID', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(amount);
+            return `Rp ${formatted}`;
+        }
+
+        // =========================================================================
+        // 3. THEME TOGGLE (Light Mode default matching image + Dark Mode)
+        // =========================================================================
+        function initTheme() {
+            const savedTheme = localStorage.getItem(STORAGE_KEY_THEME) || 'light';
+            applyTheme(savedTheme);
+        }
+
+        function applyTheme(theme) {
+            const htmlEl = document.documentElement;
+            const sunIcon = document.getElementById('icon-sun');
+            const moonIcon = document.getElementById('icon-moon');
+
+            if (theme === 'dark') {
+                htmlEl.classList.add('dark');
+                htmlEl.classList.remove('light');
+                sunIcon.classList.add('hidden');
+                moonIcon.classList.remove('hidden');
+            } else {
+                htmlEl.classList.add('light');
+                htmlEl.classList.remove('dark');
+                sunIcon.classList.remove('hidden');
+                moonIcon.classList.add('hidden');
+            }
+            localStorage.setItem(STORAGE_KEY_THEME, theme);
+        }
+
+        function toggleTheme() {
+            const isDark = document.documentElement.classList.contains('dark');
+            const nextTheme = isDark ? 'light' : 'dark';
+            applyTheme(nextTheme);
+            showToast(nextTheme === 'dark' ? 'Mode Gelap (Pink & Midnight) aktif' : 'Mode Terang aktif');
+        }
+
+        // =========================================================================
+        // 4. MONTH PERIOD SWITCHER (< RINGKASAN PERFORMA - NOVEMBER >)
+        // =========================================================================
+        async function changeMonth(direction) {
+            state.activeMonthIndex = (state.activeMonthIndex + direction + state.months.length) % state.months.length;
+            saveState();
+            await loadSalesForDisplayedMonth();
+        }
+
+        // =========================================================================
+        // 5. RENDER KPI DASHBOARD CARDS
+        // =========================================================================
+        function renderDashboard() {
+            const currentMonth = state.months[state.activeMonthIndex];
+            const totals = state.dashboardTotals || {
+                totalSold: 0,
+                omzet: 0,
+                profit: 0,
+                onlineSold: 0,
+                offlineSold: 0
+            };
+            const totalSold = totals.totalSold;
+            const totalStock = state.products.reduce((sum, p) => sum + p.stock, 0);
+            const lowStockItems = state.products.filter(p => p.stock <= 2);
+
+            const marginPct = totals.omzet > 0
+                ? Math.round((totals.profit / totals.omzet) * 100)
+                : 0;
+
+            document.getElementById('period-heading').textContent = currentMonth.label;
+            document.getElementById('kpi-sold-total').textContent = `${totalSold} pcs`;
+            document.getElementById('kpi-sold-breakdown').innerHTML =
+                `Online: <span class="font-semibold text-[#56606E] dark:text-[#CBD5E1]">${totals.onlineSold} pcs</span> | Offline: <span class="font-semibold text-[#56606E] dark:text-[#CBD5E1]">${totals.offlineSold} pcs</span>`;
+
+            document.getElementById('kpi-omzet').textContent = formatKpiCurrency(totals.omzet);
+
+            const profitEl = document.getElementById('kpi-profit');
+            profitEl.textContent = formatKpiCurrency(totals.profit);
+            profitEl.className = totals.profit < 0
+                ? 'text-[27px] sm:text-[28px] font-bold text-red-500 tracking-tight leading-tight mt-2'
+                : 'text-[27px] sm:text-[28px] font-bold text-[#18A94B] tracking-tight leading-tight mt-2';
+
+            document.getElementById('kpi-margin').textContent = `Margin bersih (${marginPct}% dari omzet)`;
+            document.getElementById('kpi-stock').textContent = `${totalStock} pcs`;
+
+            const stockStatusEl = document.getElementById('kpi-stock-status');
+            if (lowStockItems.length > 0) {
+                stockStatusEl.className = 'text-[12px] font-medium text-[#D97706] mt-2.5 flex items-center gap-1.5';
+                stockStatusEl.innerHTML = `
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="8" cy="8" r="6.5" fill="#F59E0B"/>
+                        <path d="M8 4.8V8.4" stroke="#FFFFFF" stroke-width="1.6" stroke-linecap="round"/>
+                        <circle cx="8" cy="11" r="0.9" fill="#FFFFFF"/>
+                    </svg>
+                    <span>${lowStockItems.length} Produk Menipis</span>
+                `;
+            } else {
+                stockStatusEl.className = 'text-[12px] font-medium text-[#18A94B] mt-2.5 flex items-center gap-1.5';
+                stockStatusEl.innerHTML = `
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="8" cy="8" r="6.5" fill="#18A94B"/>
+                        <path d="M8 4.8V8.4" stroke="#FFFFFF" stroke-width="1.6" stroke-linecap="round"/>
+                        <circle cx="8" cy="11" r="0.9" fill="#FFFFFF"/>
+                    </svg>
+                    <span>Stok Aman</span>
+                `;
+            }
+        }
+
+        // =========================================================================
+        // 6. RENDER MANAJEMEN STOK TABLE (Exact Visual Match)
+        // =========================================================================
+        function renderInventoryTable() {
+            const tbody = document.getElementById('inventory-table-body');
+            const emptyState = document.getElementById('empty-search-state');
+            const query = (document.getElementById('search-product').value || '').trim().toLowerCase();
+
+            const filtered = state.products.filter(p =>
+                p.name.toLowerCase().includes(query) || p.category.toLowerCase().includes(query)
+            );
+
+            tbody.innerHTML = '';
+
+            if (filtered.length === 0) {
+                emptyState.classList.remove('hidden');
+                return;
+            }
+            emptyState.classList.add('hidden');
+
+            filtered.forEach(prod => {
+                const unitProfit = prod.price - prod.hpp;
+                const isLoss = unitProfit < 0;
+
+                // Stock pill color logic matching screenshot:
+                // > 5 pcs -> Soft green-mint pill (#E3F5E8) with emerald text (#18A94B)
+                // 1..5 pcs -> Soft warm cream-yellow pill (#F4F1D6) with amber-gold text (#D69628)
+                // 0 pcs -> Soft red pill (#FEE2E2) with red text (#DC2626)
+                let stockBadgeClass = 'bg-[#E2F4E9] text-[#18A94B] dark:bg-emerald-950/70 dark:text-emerald-400';
+                if (prod.stock === 0) {
+                    stockBadgeClass = 'bg-red-100 text-red-600 dark:bg-red-950/70 dark:text-red-400';
+                } else if (prod.stock <= 5) {
+                    stockBadgeClass = 'bg-[#F4F1D5] text-[#D89A2B] dark:bg-amber-950/60 dark:text-amber-300';
+                }
+
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-black/[0.02] dark:hover:bg-white/[0.025] transition-colors group';
+
+                tr.innerHTML = `
+                    <!-- PRODUK -->
+                    <td class="py-3.5 pr-3 align-middle cursor-pointer" onclick="populateFormForEdit('${String(prod.id).replace(/'/g, "\\'")}')" title="Klik untuk edit harga/stok produk ini">
+                        <div class="font-semibold text-[13px] text-[#353D49] dark:text-[#F0F6FC] group-hover:text-[#C74B92] transition-colors leading-snug">
+                            ${escapeHtml(prod.name)}
+                        </div>
+                        <span class="cat-badge inline-block mt-1 px-2 py-[2px] rounded-[4px] text-[10.5px] font-medium leading-tight">
+                            ${escapeHtml(prod.category)}
+                        </span>
+                    </td>
+
+                    <!-- MODAL / JUAL -->
+                    <td class="py-3.5 px-3 align-middle whitespace-nowrap">
+                        <div class="font-semibold text-[12px] text-[#454E5B] dark:text-[#E2E8F0]">
+                            Jual : ${formatTableCurrency(prod.price)}
+                        </div>
+                        <div class="text-[11px] text-[#8E96A4] dark:text-[#7C8BA1] mt-0.5">
+                            Modal : ${formatTableCurrency(prod.hpp)}
+                        </div>
+                    </td>
+
+                    <!-- PROFIT / PCS -->
+                    <td class="py-3.5 px-3 align-middle whitespace-nowrap">
+                        <span class="font-semibold text-[12px] ${isLoss ? 'text-red-500' : 'text-[#18A94B]'}">
+                            ${isLoss ? '-' : '+'}${formatTableCurrency(Math.abs(unitProfit))}
+                        </span>
+                    </td>
+
+                    <!-- SISA STOK -->
+                    <td class="py-3.5 px-3 align-middle text-center whitespace-nowrap">
+                        <div class="inline-flex items-center gap-1.5">
+                            <span class="inline-flex items-center justify-center min-w-[54px] px-2.5 py-[3px] rounded-[6px] text-[11.5px] font-semibold ${stockBadgeClass}">
+                                ${prod.stock} pcs
+                            </span>
+                            <button type="button" onclick="adjustStock('${String(prod.id).replace(/'/g, "\\'")}', -1)" aria-label="Kurangi stok ${escapeHtml(prod.name)}"
+                                class="mini-step-btn w-[20px] h-[20px] rounded-[4px] inline-flex items-center justify-center text-[12px] font-bold leading-none">
+                                -
+                            </button>
+                            <button type="button" onclick="adjustStock('${String(prod.id).replace(/'/g, "\\'")}', 1)" aria-label="Tambah stok ${escapeHtml(prod.name)}"
+                                class="mini-step-btn w-[20px] h-[20px] rounded-[4px] inline-flex items-center justify-center text-[12px] font-bold leading-none">
+                                +
+                            </button>
+                        </div>
+                    </td>
+
+                    <!-- CATAT PENJUALAN -->
+                    <td class="py-3.5 pl-3 align-middle text-center whitespace-nowrap">
+                        <div class="inline-flex items-center gap-2">
+                            <button type="button" onclick="recordSale('${String(prod.id).replace(/'/g, "\\'")}', 'online')"
+                                class="bg-[#5A8DEE] hover:bg-[#497EE3] active:scale-95 text-white text-[11.5px] font-medium px-3 py-[5px] rounded-[6px] shadow-2xs transition">
+                                Online -
+                            </button>
+                            <button type="button" onclick="recordSale('${String(prod.id).replace(/'/g, "\\'")}', 'offline')"
+                                class="bg-[#E5B557] hover:bg-[#D8A543] active:scale-95 text-white text-[11.5px] font-medium px-3 py-[5px] rounded-[6px] shadow-2xs transition">
+                                Offline -
+                            </button>
+                        </div>
+                    </td>
+
+                    <!-- HAPUS DATA PRODUK -->
+                    <td class="py-3.5 pl-3 align-middle text-center whitespace-nowrap">
+                        <button type="button" onclick="openDeleteProductModal('${String(prod.id).replace(/'/g, "\\'")}')"
+                            aria-label="Hapus produk ${escapeHtml(prod.name)} beserta riwayatnya"
+                            title="Hapus produk beserta seluruh riwayat penjualannya"
+                            class="w-[28px] h-[28px] rounded-[7px] inline-flex items-center justify-center text-red-500 bg-red-50 hover:bg-red-100 dark:bg-red-950/40 dark:hover:bg-red-950/70 active:scale-95 transition border border-red-200 dark:border-red-900">
+                            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                                <path d="M3.5 4.5H12.5M6 2.5H10M5 4.5L5.4 13H10.6L11 4.5M6.7 7V10.8M9.3 7V10.8" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>
+                    </td>
+                `;
+
+                tbody.appendChild(tr);
+            });
+        }
+
+        // =========================================================================
+        // 7. INTERACTIVE ACTIONS (Sales, Stock Steppers, Form Add/Update, Undo)
+        // =========================================================================
+        async function recordSale(productId, channel) {
+            const prod = state.products.find(p => String(p.id) === String(productId));
+            if (!prod) return;
+
+            if (prod.stock <= 0) {
+                showToast(`Stok "${prod.name}" habis! Tambahkan stok terlebih dahulu.`, 'error');
+                return;
+            }
+
+            const { error } = await supabaseClient.rpc('record_sale', {
+                p_business_id: activeBusinessId,
+                p_product_id: productId,
+                p_channel: channel
+            });
+
+            if (error) {
+                showToast(error.message, 'error');
+                return;
+            }
+
+            await loadCloudData();
+            const channelLabel = channel === 'online' ? 'Online' : 'Offline';
+            showToast(`Terjual 1x ${prod.name} (${channelLabel})`, 'success', false);
+        }
+
+        async function adjustStock(productId, delta) {
+            const prod = state.products.find(p => String(p.id) === String(productId));
+            if (!prod) return;
+
+            if (prod.stock + delta < 0) {
+                showToast(`Stok "${prod.name}" sudah 0 pcs.`, 'error');
+                return;
+            }
+
+            const { error } = await supabaseClient
+                .from('products')
+                .update({ stock: prod.stock + delta })
+                .eq('id', productId);
+
+            if (error) {
+                showToast(error.message, 'error');
+                return;
+            }
+
+            await loadCloudData();
+            const sign = delta > 0 ? `+${delta}` : `${delta}`;
+            showToast(`Stok ${prod.name}: ${sign} pcs`, 'info');
+        }
+
+        function openDeleteProductModal(productId) {
+            const prod = state.products.find(p => String(p.id) === String(productId));
+            if (!prod) return;
+
+            openConfirmModal(
+                'Hapus Produk Sepenuhnya?',
+                `Produk "${prod.name}" beserta stok, riwayat penjualan, omzet, dan profitnya akan dihapus permanen. Tindakan ini tidak dapat dibatalkan.`,
+                () => deleteProductCompletely(productId)
+            );
+        }
+
+        async function deleteProductCompletely(productId) {
+            const prod = state.products.find(p => String(p.id) === String(productId));
+            if (!prod) return;
+
+            // Remove sale items that belong to this product before deleting the product.
+            // This also makes dashboard omzet/profit disappear along with this product.
+            const { data: linkedItems, error: linkedError } = await supabaseClient
+                .from('sale_items')
+                .select('id, sale_id, product_id')
+                .eq('product_id', productId);
+
+            if (!linkedError && linkedItems && linkedItems.length > 0) {
+                const saleIds = [...new Set(linkedItems.map(item => item.sale_id).filter(Boolean))];
+
+                const { error: deleteItemsError } = await supabaseClient
+                    .from('sale_items')
+                    .delete()
+                    .eq('product_id', productId);
+
+                if (deleteItemsError) {
+                    showToast(deleteItemsError.message, 'error');
+                    return;
+                }
+
+                // Delete only sales that become empty after removing this product's items.
+                if (saleIds.length > 0) {
+                    const { data: remainingItems } = await supabaseClient
+                        .from('sale_items')
+                        .select('sale_id')
+                        .in('sale_id', saleIds);
+
+                    const remainingSaleIds = new Set((remainingItems || []).map(item => item.sale_id));
+                    const emptySaleIds = saleIds.filter(id => !remainingSaleIds.has(id));
+
+                    if (emptySaleIds.length > 0) {
+                        await supabaseClient
+                            .from('sales')
+                            .delete()
+                            .in('id', emptySaleIds);
+                    }
+                }
+            } else if (linkedError && !String(linkedError.message).toLowerCase().includes('column')) {
+                // Continue to product deletion for schemas with cascade deletion;
+                // otherwise the product delete below will report the actual database error.
+            }
+
+            const { error } = await supabaseClient
+                .from('products')
+                .delete()
+                .eq('id', productId)
+                .eq('business_id', activeBusinessId);
+
+            if (error) {
+                showToast(error.message, 'error');
+                return;
+            }
+
+            if (document.getElementById('editing-product-id').value === String(productId)) {
+                resetFormState();
+            }
+
+            await loadCloudData();
+            showToast(`Produk "${prod.name}" dan seluruh datanya berhasil dihapus`, 'success');
+        }
+
+        function undoLastSale() {
+            const act = state.lastAction;
+            if (!act || act.type !== 'sale') return;
+
+            const prod = state.products.find(p => p.id === act.productId);
+            const month = state.months[act.monthIndex];
+            if (prod && month) {
+                prod.stock += 1;
+                if (act.channel === 'online') {
+                    month.onlineSold = Math.max(0, month.onlineSold - 1);
+                } else {
+                    month.offlineSold = Math.max(0, month.offlineSold - 1);
+                }
+                month.omzet -= act.price;
+                month.profit -= act.profit;
+            }
+
+            state.lastAction = null;
+            saveState();
+            renderDashboard();
+            renderInventoryTable();
+            showToast('Transaksi terakhir dibatalkan (Undo)', 'info');
+        }
+
+        // Left Form: Step input helper
+        function stepInput(inputId, step) {
+            const el = document.getElementById(inputId);
+            if (!el) return;
+            const current = parseFloat(el.value) || 0;
+            let next = current + step;
+            if (inputId !== 'input-stock' && next < 0) next = 0;
+            el.value = next;
+            if (inputId === 'input-hpp' || inputId === 'input-price') {
+                updateLiveMarginPreview();
+            }
+        }
+
+        // Live margin calculator preview inside Left Card
+        function updateLiveMarginPreview() {
+            const hpp = parseFloat(document.getElementById('input-hpp').value);
+            const price = parseFloat(document.getElementById('input-price').value);
+            const banner = document.getElementById('margin-preview-banner');
+            const label = document.getElementById('margin-preview-label');
+            const amount = document.getElementById('margin-preview-amount');
+            const note = document.getElementById('margin-preview-note');
+
+            if (isNaN(hpp) && isNaN(price)) {
+                banner.classList.add('hidden');
+                return;
+            }
+
+            const safeHpp = isNaN(hpp) ? 0 : hpp;
+            const safePrice = isNaN(price) ? 0 : price;
+            const profit = safePrice - safeHpp;
+            const marginPct = safePrice > 0 ? ((profit / safePrice) * 100).toFixed(1) : 0;
+
+            banner.classList.remove('hidden');
+
+            if (safePrice > 0 && profit < 0) {
+                banner.className = 'rounded-[10px] px-3.5 py-2.5 text-[12px] border bg-red-50/90 dark:bg-red-950/40 border-red-300 dark:border-red-800 text-red-700 dark:text-red-300';
+                label.textContent = 'Peringatan Rugi / pcs:';
+                amount.textContent = `-${formatTableCurrency(Math.abs(profit))}`;
+                note.textContent = 'Harga jual lebih rendah daripada harga modal!';
+            } else {
+                banner.className = 'rounded-[10px] px-3.5 py-2.5 text-[12px] border bg-[#E2F4E9]/80 dark:bg-emerald-950/40 border-[#B7E4C7] dark:border-emerald-800 text-[#15803D] dark:text-emerald-300';
+                label.textContent = `Estimasi Profit (${marginPct}%):`;
+                amount.textContent = `+${formatTableCurrency(profit)}`;
+                note.textContent = 'Margin sehat dan siap disimpan ke katalog cloud.';
+            }
+        }
+
+        // Populate form when clicking a product row in Manajemen Stok
+        function populateFormForEdit(productId) {
+            const prod = state.products.find(p => p.id === productId);
+            if (!prod) return;
+
+            document.getElementById('editing-product-id').value = prod.id;
+            document.getElementById('input-name').value = prod.name;
+            document.getElementById('input-category').value = prod.category;
+            document.getElementById('input-stock').value = 0;
+            document.getElementById('input-hpp').value = prod.hpp;
+            document.getElementById('input-price').value = prod.price;
+
+            document.getElementById('clear-edit-btn').classList.remove('hidden');
+            document.getElementById('submit-catalog-label').textContent = 'Simpan Perubahan Produk';
+            updateLiveMarginPreview();
+
+            // Smooth scroll on mobile
+            if (window.innerWidth < 1024) {
+                document.getElementById('product-form').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        function resetFormState() {
+            document.getElementById('product-form').reset();
+            document.getElementById('editing-product-id').value = '';
+            document.getElementById('input-stock').value = 0;
+            document.getElementById('clear-edit-btn').classList.add('hidden');
+            document.getElementById('submit-catalog-label').textContent = 'Tambahkan ke Daftar Katalog';
+            document.getElementById('margin-preview-banner').classList.add('hidden');
+        }
+
+        // Form Submit Handler: Add New Product OR Update Existing Product
+        document.getElementById('product-form').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const editingId = document.getElementById('editing-product-id').value.trim();
+            const name = document.getElementById('input-name').value.trim();
+            const category = document.getElementById('input-category').value;
+            const stockDelta = parseInt(document.getElementById('input-stock').value, 10) || 0;
+            const hpp = parseFloat(document.getElementById('input-hpp').value);
+            const price = parseFloat(document.getElementById('input-price').value);
+
+            if (!name) {
+                showToast('Masukkan nama produk terlebih dahulu.', 'error');
+                document.getElementById('input-name').focus();
+                return;
+            }
+
+            if (isNaN(hpp) || isNaN(price) || price <= 0) {
+                showToast('Masukkan Harga Modal dan Harga Jual yang valid.', 'error');
+                return;
+            }
+
+            // Check if updating by ID or matching existing product name
+            const existing = editingId
+                ? state.products.find(p => p.id === editingId)
+                : state.products.find(p => p.name.toLowerCase() === name.toLowerCase());
+
+            const commitSave = async () => {
+                if (existing) {
+                    const { error } = await supabaseClient
+                        .from('products')
+                        .update({
+                            name,
+                            category,
+                            hpp,
+                            price,
+                            stock: Math.max(0, existing.stock + stockDelta)
+                        })
+                        .eq('id', existing.id);
+
+                    if (error) {
+                        showToast(error.message, 'error');
+                        return;
+                    }
+                    showToast(`Produk "${name}" berhasil diperbarui!`, 'success');
+                } else {
+                    const { error } = await supabaseClient
+                        .from('products')
+                        .insert({
+                            business_id: activeBusinessId,
+                            name,
+                            category,
+                            hpp,
+                            price,
+                            stock: Math.max(0, stockDelta)
+                        });
+
+                    if (error) {
+                        showToast(error.message, 'error');
+                        return;
+                    }
+                    showToast(`"${name}" ditambahkan ke daftar katalog!`, 'success');
+                }
+
+                await loadCloudData();
+                resetFormState();
+            };
+
+            if (price < hpp) {
+                openConfirmModal(
+                    'Peringatan Harga Jual Rugi',
+                    `Harga jual (${formatTableCurrency(price)}) lebih rendah dari harga modal (${formatTableCurrency(hpp)}). Tetap simpan produk ini?`,
+                    commitSave
+                );
+            } else {
+                commitSave();
+            }
+        });
+
+        // =========================================================================
+        // 8. CLOUD SYNC PULSE & RESET DEMO MODAL
+        // =========================================================================
+        function triggerCloudSync() {
+            const svg = document.getElementById('cloud-sync-svg');
+            const label = document.getElementById('cloud-sync-text');
+
+            svg.classList.remove('animate-sync-spin');
+            label.textContent = 'Menyinkronkan...';
+            loadCloudData();
+
+            setTimeout(() => {
+                label.textContent = 'Cloud Sync Aktif';
+                showToast('Semua data stok & profit tersinkronisasi dengan Cloud', 'success');
+            }, 650);
+        }
+
+        function openResetModal() {
+            openConfirmModal(
+                'Reset Tampilan Lokal?',
+                'Hapus cache tampilan lokal. Data produk dan transaksi tetap tersimpan di Cloud.',
+                async () => {
+                    localStorage.removeItem('wiradatha_state_v1');
+                    loadState();
+                    await loadCloudData();
+                    resetFormState();
+                    showToast('Cache tampilan lokal berhasil dihapus', 'info');
+                }
+            );
+        }
+
+        function openConfirmModal(title, message, onConfirm) {
+            const modal = document.getElementById('confirm-modal');
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-message').textContent = message;
+
+            const confirmBtn = document.getElementById('modal-confirm-btn');
+            confirmBtn.onclick = () => {
+                closeConfirmModal();
+                if (typeof onConfirm === 'function') onConfirm();
+            };
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeConfirmModal() {
+            const modal = document.getElementById('confirm-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        // =========================================================================
+        // 9. TOAST NOTIFICATION SYSTEM
+        // =========================================================================
+        function showToast(message, type = 'info', withUndo = false) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+
+            let badgeDot = 'bg-[#C74B92]';
+            if (type === 'success') badgeDot = 'bg-[#18A94B]';
+            if (type === 'error') badgeDot = 'bg-red-500';
+
+            toast.className = 'pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-[12px] bg-[#1F1923] text-white text-[12.5px] font-medium shadow-lg border border-white/10 transition-all duration-300 translate-y-3 opacity-0';
+            toast.innerHTML = `
+                <span class="w-2 h-2 rounded-full ${badgeDot} shrink-0"></span>
+                <span>${escapeHtml(message)}</span>
+                ${withUndo ? `<button type="button" onclick="undoLastSale(); this.parentElement.remove();" class="ml-2 text-[#E887B5] hover:text-white font-semibold underline text-[12px]">Undo</button>` : ''}
+            `;
+
+            container.appendChild(toast);
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-y-3', 'opacity-0');
+            });
+
+            setTimeout(() => {
+                toast.classList.add('translate-y-3', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3400);
+        }
+
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        // Initialize Application
+window.addEventListener('DOMContentLoaded', async () => {
+    initTheme();
+
+    document.getElementById('login-form').addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const email = document.getElementById('login-email').value.trim();
+        const password = document.getElementById('login-password').value;
+
+        const { error } = await supabaseClient.auth.signInWithPassword({
+            email,
+            password
+        });
+
+        if (error) {
+            showToast(error.message, 'error');
+            return;
+        }
+
+        document.getElementById('login-form').classList.add('hidden');
+        await loadCloudData();
+    });
+
+    document.getElementById('business-form').addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const name = document.getElementById('business-name').value.trim();
+        const { data: businessId, error } = await supabaseClient.rpc(
+            'create_business',
+            { p_name: name }
+        );
+
+        if (error) {
+            showToast(error.message, 'error');
+            return;
+        }
+
+        activeBusinessId = businessId;
+        await loadCloudData();
+    });
+
+    const { data, error } = await supabaseClient.auth.getSession();
+
+    if (error) {
+        showToast(error.message, 'error');
+        return;
+    }
+
+    if (data.session) {
+        document.getElementById('login-form').classList.add('hidden');
+        await loadCloudData();
+    }
+});
+    </script>
+</body>
+</html>
