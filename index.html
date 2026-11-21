@@ -182,6 +182,10 @@
             display: block !important;
         }
 
+        .app-navbar #auth-action-label {
+            display: inline !important;
+        }
+
         .app-navbar svg:not(#app-logo),
         main svg:not(#report-annual-chart) {
             display: none !important;
@@ -249,6 +253,39 @@
             font-weight: 700;
         }
 
+        .zoom-controls {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            color: #FFFFFF;
+            font-size: 12px;
+        }
+
+        .zoom-controls button {
+            min-width: 40px;
+            min-height: 36px;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 7px;
+            background: transparent;
+            color: inherit;
+            font-weight: 700;
+        }
+
+        .zoom-controls button:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .zoom-controls button:disabled {
+            cursor: not-allowed;
+            opacity: 0.45;
+        }
+
+        #app-zoom-value {
+            min-width: 42px;
+            text-align: center;
+            font-variant-numeric: tabular-nums;
+        }
+
         #theme-toggle-btn::after {
             content: "Mode";
         }
@@ -275,6 +312,79 @@
         #inventory-table-body button {
             border-radius: 7px !important;
             box-shadow: none;
+        }
+
+        @media (max-width: 640px) {
+            body {
+                line-height: 1.55;
+            }
+
+            .app-navbar {
+                height: auto !important;
+                min-height: 72px;
+                padding: 8px 0;
+            }
+
+            .app-navbar > div {
+                height: auto !important;
+                min-height: 56px;
+                flex-wrap: wrap;
+                row-gap: 8px;
+            }
+
+            #app-header-actions {
+                flex: 1 0 100%;
+                justify-content: flex-end;
+                gap: 8px;
+            }
+
+            #app-main,
+            #finance-report-screen {
+                gap: 20px;
+                padding: 20px 16px 28px !important;
+            }
+
+            .app-card {
+                padding: 20px !important;
+            }
+
+            #login-screen .app-card {
+                padding: 24px !important;
+            }
+
+            #product-form > div.grid-cols-2 {
+                grid-template-columns: minmax(0, 1fr) !important;
+                gap: 14px;
+            }
+
+            #product-form input,
+            #product-form select,
+            #login-form input,
+            #search-product,
+            #inventory-sort-field {
+                min-height: 44px;
+            }
+
+            .zoom-controls button,
+            #theme-toggle-btn,
+            #auth-action-btn {
+                min-height: 44px;
+            }
+
+            #app-main button:not(.mini-step-btn),
+            #finance-report-screen button {
+                min-height: 44px;
+            }
+
+            #product-form .app-input button {
+                min-height: 0;
+                min-width: 0;
+            }
+
+            #inventory-table-body button {
+                min-width: 44px;
+                min-height: 44px;
+            }
         }
 
     </style>
@@ -342,7 +452,7 @@
             </div>
 
             <!-- Right: Theme Toggle and Account Action -->
-            <div class="flex items-center gap-4 sm:gap-6">
+            <div id="app-header-actions" class="flex items-center gap-4 sm:gap-6">
                 <!-- Light / Dark Mode Toggle Button -->
                 <button id="theme-toggle-btn" onclick="toggleTheme()" title="Ganti Mode Terang / Gelap"
                     class="p-2 rounded-full text-white hover:bg-white/10 transition-colors focus:outline-none focus:ring-2 focus:ring-[#C84B93]">
@@ -366,6 +476,14 @@
                         <circle cx="23.5" cy="11.5" r="1" fill="#BAE6FD"/>
                     </svg>
                 </button>
+
+                <div class="zoom-controls" role="group" aria-label="Pengaturan ukuran tampilan">
+                    <button type="button" onclick="changeAppZoom(-10)" aria-label="Perkecil tampilan"
+                        title="Perkecil tampilan" id="app-zoom-decrease">A−</button>
+                    <span id="app-zoom-value" aria-live="polite">100%</span>
+                    <button type="button" onclick="changeAppZoom(10)" aria-label="Perbesar tampilan"
+                        title="Perbesar tampilan" id="app-zoom-increase">A+</button>
+                </div>
 
                 <button id="auth-action-btn" type="button" onclick="handleAuthAction()" aria-label="Masuk ke akun"
                     title="Masuk ke akun"
@@ -1484,6 +1602,41 @@ let isAuthenticated = false;
             showToast(nextTheme === 'dark' ? 'Mode Gelap (Pink & Midnight) aktif' : 'Mode Terang aktif');
         }
 
+        const APP_ZOOM_STORAGE_KEY = 'wiradatha_app_zoom_v1';
+        let appZoom = 100;
+
+        function initAppZoom() {
+            try {
+                const savedZoom = Number(localStorage.getItem(APP_ZOOM_STORAGE_KEY));
+                if (Number.isInteger(savedZoom) && savedZoom >= 80 && savedZoom <= 130) {
+                    appZoom = savedZoom;
+                }
+            } catch (error) {
+                console.warn('Could not read display size setting:', error);
+            }
+            applyAppZoom();
+        }
+
+        function applyAppZoom() {
+            document.documentElement.style.zoom = `${appZoom}%`;
+            document.getElementById('app-zoom-value').textContent = `${appZoom}%`;
+            document.getElementById('app-zoom-decrease').disabled = appZoom <= 80;
+            document.getElementById('app-zoom-increase').disabled = appZoom >= 130;
+        }
+
+        function changeAppZoom(delta) {
+            const nextZoom = Math.min(130, Math.max(80, appZoom + delta));
+            if (nextZoom === appZoom) return;
+
+            appZoom = nextZoom;
+            applyAppZoom();
+            try {
+                localStorage.setItem(APP_ZOOM_STORAGE_KEY, String(appZoom));
+            } catch (error) {
+                showToast(`Ukuran tampilan berubah, tetapi tidak dapat disimpan: ${error.message}`, 'error');
+            }
+        }
+
         function updateAuthControls(authenticated) {
             isAuthenticated = authenticated;
             const action = authenticated ? 'Keluar' : 'Masuk';
@@ -2280,6 +2433,7 @@ let isAuthenticated = false;
         // Initialize Application
 window.addEventListener('DOMContentLoaded', async () => {
     initTheme();
+    initAppZoom();
     loadCustomCategories();
 
     document.getElementById('login-form').addEventListener('submit', async (event) => {
