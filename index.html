@@ -158,36 +158,123 @@
             margin: 0;
         }
 
-        /* Exact Warm Rose-Pink to Peach-Gold Gradient Button */
+        /* Simplified flat interface */
+        body {
+            background: var(--bg-page);
+            letter-spacing: -0.01em;
+        }
+
+        [class*="shadow"] {
+            box-shadow: none !important;
+        }
+
+        .app-navbar {
+            height: 72px !important;
+        }
+
+        main svg:not(#report-annual-chart),
+        #login-screen svg,
+        #business-section svg {
+            display: none !important;
+        }
+
+        .app-navbar #app-logo {
+            display: block !important;
+        }
+
+        .app-navbar svg:not(#app-logo),
+        main svg:not(#report-annual-chart) {
+            display: none !important;
+        }
+
+        main #submit-catalog-btn svg,
+        main #inventory-sort-direction svg,
+        main #inventory-table-body .inventory-delete-btn svg {
+            display: block !important;
+        }
+
+        .app-card {
+            border-radius: 12px !important;
+            box-shadow: none;
+            background: var(--bg-card-elevated);
+        }
+
+        .app-input {
+            border-radius: 8px !important;
+            box-shadow: none;
+        }
+
+        .app-input:focus {
+            box-shadow: none;
+        }
+
+        #category-filter-label::-webkit-details-marker {
+            display: none;
+        }
+
+        #category-filter-options input {
+            accent-color: var(--pink-accent);
+        }
+
+        .kpi-icon-ring {
+            display: none;
+        }
+
         .btn-catalog-gradient {
-            background: linear-gradient(90deg, #E280A7 0%, #E79B8E 52%, #E8B37C 100%);
-            box-shadow: var(--shadow-cta);
-            transition: transform 0.15s ease, filter 0.2s ease, box-shadow 0.2s ease;
+            border-radius: 8px !important;
+            background: var(--pink-accent) !important;
+            box-shadow: none;
         }
 
         .btn-catalog-gradient:hover {
-            filter: brightness(1.03);
-            transform: translateY(-1px);
+            filter: none;
+            background: #B63F80 !important;
+            transform: none;
         }
 
-        .btn-catalog-gradient:active {
-            transform: translateY(0px) scale(0.99);
+        html.dark .btn-catalog-gradient:hover {
+            background: #F080BE !important;
         }
 
-        /* Double-ring Pink Circular Icon Badge on KPI Cards */
-        .kpi-icon-ring {
-            width: 40px;
-            height: 40px;
-            border-radius: 9999px;
-            display: flex;
+        #theme-toggle-btn,
+        #auth-action-btn,
+        #theme-toggle-btn {
+            display: inline-flex;
             align-items: center;
             justify-content: center;
-            flex-shrink: 0;
-            background: var(--pink-badge-bg);
-            border: 1px solid var(--pink-ring-inner);
-            box-shadow:
-                0 0 0 5px var(--pink-ring-inner),
-                0 0 0 9px var(--pink-ring-outer);
+            min-width: 52px;
+            height: 36px;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        #theme-toggle-btn::after {
+            content: "Mode";
+        }
+
+
+        #product-form button[type="submit"],
+        #login-form button[type="submit"] {
+            justify-content: center;
+        }
+
+        main section,
+        #finance-report-screen {
+            letter-spacing: 0;
+        }
+
+        #inventory-table-body tr {
+            transition: background-color 0.12s ease;
+        }
+
+        #inventory-table-body tr:hover {
+            background: rgba(199, 75, 146, 0.045);
+        }
+
+        #inventory-table-body button {
+            border-radius: 7px !important;
+            box-shadow: none;
         }
 
     </style>
@@ -199,7 +286,7 @@
             <!-- Left: Exact Inline Vector SVG Logo + Subtitle -->
             <div class="flex flex-col select-none">
                 <div class="flex items-center">
-                    <svg viewBox="0 0 212 99" fill="none" xmlns="http://www.w3.org/2000/svg"
+                    <svg id="app-logo" viewBox="0 0 212 99" fill="none" xmlns="http://www.w3.org/2000/svg"
                         class="h-[58px] sm:h-[64px] w-auto -mt-1 -mb-4 overflow-visible block shrink-0"
                         role="img" aria-label="WiradathaApp Logo">
                         <g filter="url(#filter0_dddd_114_457)">
@@ -254,7 +341,7 @@
                 </p>
             </div>
 
-            <!-- Right: Theme Toggle SVG + White Cloud Sync Aktif Pill -->
+            <!-- Right: Theme Toggle and Account Action -->
             <div class="flex items-center gap-4 sm:gap-6">
                 <!-- Light / Dark Mode Toggle Button -->
                 <button id="theme-toggle-btn" onclick="toggleTheme()" title="Ganti Mode Terang / Gelap"
@@ -280,24 +367,6 @@
                     </svg>
                 </button>
 
-                <!-- White Pill: Cloud Sync Aktif -->
-                <div id="cloud-sync-container" class="relative hidden">
-                    <button id="cloud-sync-btn" onclick="triggerCloudSync()" ondblclick="openResetModal()"
-                        title="Klik untuk sinkronisasi cloud (Klik 2x untuk opsi reset demo)"
-                        class="bg-white hover:bg-slate-50 active:scale-[0.98] transition-all rounded-full px-4 sm:px-5 py-2 flex items-center gap-2.5 shadow-sm">
-                        <!-- Custom Green Cloud with Inner Dual Refresh/Sync Arrows SVG -->
-                        <svg id="cloud-sync-svg" width="24" height="18" viewBox="0 0 26 19" fill="none" xmlns="http://www.w3.org/2000/svg" class="shrink-0">
-                            <path d="M6.8 17.5H19.6C22.4 17.5 24.6 15.3 24.6 12.6C24.6 10.1 22.7 8 20.3 7.7C19.6 4.1 16.4 1.5 12.6 1.5C9.4 1.5 6.6 3.4 5.4 6.2C2.9 6.6 1 8.8 1 11.4C1 14.8 3.6 17.5 6.8 17.5Z" fill="#16A34A"/>
-                            <!-- Left upward sync arrow inside cloud -->
-                            <path d="M10.4 13.2V8.4M10.4 8.4L8.6 10.2M10.4 8.4L12.2 10.2" stroke="#FFFFFF" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"/>
-                            <!-- Right downward sync arrow inside cloud -->
-                            <path d="M15.4 8.4V13.2M15.4 13.2L13.6 11.4M15.4 13.2L17.2 11.4" stroke="#FFFFFF" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                        <span id="cloud-sync-text" class="text-[#16A34A] font-semibold text-[13.5px] sm:text-[14.5px] tracking-tight whitespace-nowrap">
-                            Cloud Sync Aktif
-                        </span>
-                    </button>
-                </div>
                 <button id="auth-action-btn" type="button" onclick="handleAuthAction()" aria-label="Masuk ke akun"
                     title="Masuk ke akun"
                     class="shrink-0 p-2 sm:px-3 rounded-full text-white hover:bg-white/10 transition sm:inline-flex sm:items-center sm:gap-2">
@@ -373,9 +442,6 @@
                 <button type="button" onclick="showFinanceReport()"
                     class="rounded-[10px] bg-[#C74B92] px-3 py-2 text-[11px] sm:text-[12px] font-semibold text-white hover:bg-[#B23D80] transition">
                     Laporan Keuangan
-                </button>
-                <button onclick="openResetModal()" class="text-[11px] text-[#8E95A0] hover:text-[#C74B92] transition hidden sm:inline-flex items-center gap-1">
-                    <span>Reset Data</span>
                 </button>
             </div>
         </div>
@@ -520,9 +586,15 @@
                     <div class="grid grid-cols-2 gap-3.5">
                         <!-- Kategori Select -->
                         <div>
-                            <label for="input-category" class="block text-[12.5px] font-medium text-[#3C4450] dark:text-[#CBD5E1] mb-1.5">
-                                Kategori
-                            </label>
+                            <div class="mb-1.5 flex items-center justify-between gap-2">
+                                <label for="input-category" class="text-[12.5px] font-medium text-[#3C4450] dark:text-[#CBD5E1]">
+                                    Kategori
+                                </label>
+                                <button type="button" onclick="showAddCategoryForm()"
+                                    class="text-[11px] font-semibold text-[#C74B92] hover:underline">
+                                    + Tambah kategori
+                                </button>
+                            </div>
                             <div class="relative">
                                 <select id="input-category"
                                     class="app-input w-full appearance-none rounded-[10px] pl-3.5 pr-9 py-2.5 text-[13px] cursor-pointer">
@@ -541,6 +613,20 @@
                                         <path d="M4 6L8 10L12 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
                                     </svg>
                                 </span>
+                            </div>
+                            <div id="new-category-container" class="hidden mt-2 space-y-2">
+                                <input type="text" id="new-category-name" maxlength="60" placeholder="Nama kategori baru"
+                                    class="app-input w-full rounded-[8px] px-3 py-2 text-[12.5px]">
+                                <div class="flex items-center gap-2">
+                                    <button type="button" onclick="addProductCategory()"
+                                        class="rounded-[7px] bg-[#C74B92] px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-[#B23D80]">
+                                        Simpan kategori
+                                    </button>
+                                    <button type="button" onclick="cancelAddCategory()"
+                                        class="app-input rounded-[7px] px-3 py-1.5 text-[11px] font-semibold">
+                                        Batal
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
@@ -669,10 +755,35 @@
                         </p>
                     </div>
 
-                    <!-- Search Box -->
-                    <div class="w-full sm:w-[290px]">
-                        <input type="text" id="search-product" oninput="renderInventoryTable()" placeholder="Cari produk.."
-                            class="app-input w-full rounded-[10px] px-4 py-2 text-[12.5px]">
+                    <!-- Search and Sorting -->
+                    <div class="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+                        <input type="text" id="search-product" oninput="renderInventoryTable()" placeholder="Cari produk..."
+                            class="app-input w-full rounded-[8px] px-3.5 py-2 text-[12.5px] sm:w-[220px]">
+                        <details class="relative">
+                            <summary id="category-filter-label" class="app-input flex cursor-pointer list-none items-center rounded-[8px] px-3 py-2 text-[12.5px] font-medium">
+                                Filter kategori
+                            </summary>
+                            <div class="app-card absolute right-0 z-20 mt-1 max-h-64 min-w-[210px] overflow-y-auto rounded-[8px] p-3">
+                                <div id="category-filter-options" class="space-y-2"></div>
+                            </div>
+                        </details>
+                        <select id="inventory-sort-field" onchange="renderInventoryTable()"
+                            class="app-input min-w-[175px] rounded-[8px] px-3 py-2 text-[12.5px]">
+                            <option value="name">Nama produk</option>
+                            <option value="created">Tanggal dibuat</option>
+                            <option value="sales">Penjualan tertinggi</option>
+                            <option value="profit">Profit per pcs</option>
+                            <option value="stock">Sisa stok</option>
+                            <option value="price">Harga jual</option>
+                        </select>
+                        <button type="button" id="inventory-sort-direction" onclick="toggleInventorySortDirection()"
+                            class="app-input inline-flex items-center justify-center gap-1.5 rounded-[8px] px-3 py-2 text-[12.5px] font-semibold"
+                            title="Urut naik (ascending)" aria-label="Urut naik (ascending)">
+                            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                                <path d="M8 13V3M4.5 6.5L8 3L11.5 6.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            <span>Asc</span>
+                        </button>
                     </div>
                 </div>
 
@@ -963,6 +1074,10 @@ let isAuthenticated = false;
 
         let state = {
             products: [],
+            customCategories: [],
+            selectedCategoryFilters: null,
+            productSales: {},
+            inventorySortDirection: 'asc',
             months: JSON.parse(JSON.stringify(monthPeriods)),
             activeMonthIndex: 1, // Default: NOVEMBER (matches screenshot)
             activeYear: MIN_SUMMARY_YEAR,
@@ -970,6 +1085,168 @@ let isAuthenticated = false;
             lastAction: null,
             dashboardTotals: null
         };
+
+        function renderCategoryFilters() {
+            const optionsContainer = document.getElementById('category-filter-options');
+            const label = document.getElementById('category-filter-label');
+            const categories = [...new Map(
+                state.products
+                    .map(product => String(product.category || '').trim())
+                    .filter(Boolean)
+                    .map(category => [category.toLocaleLowerCase(), category])
+            ).values()].sort((a, b) => a.localeCompare(b, 'id'));
+
+            if (state.selectedCategoryFilters) {
+                state.selectedCategoryFilters = state.selectedCategoryFilters.filter(category =>
+                    categories.some(available => available.toLocaleLowerCase() === category.toLocaleLowerCase())
+                );
+            }
+
+            optionsContainer.replaceChildren();
+            const selectAllLabel = document.createElement('label');
+            selectAllLabel.className = 'mb-2 flex cursor-pointer items-center gap-2 border-b app-divider pb-2 text-[12px] font-semibold text-[var(--text-primary)]';
+
+            const selectAllCheckbox = document.createElement('input');
+            selectAllCheckbox.type = 'checkbox';
+            selectAllCheckbox.checked = categories.length === 0 || !state.selectedCategoryFilters ||
+                state.selectedCategoryFilters.length === categories.length;
+            selectAllCheckbox.disabled = categories.length === 0;
+            selectAllCheckbox.addEventListener('change', () => {
+                state.selectedCategoryFilters = selectAllCheckbox.checked ? null : [];
+                renderCategoryFilters();
+                renderInventoryTable();
+            });
+
+            const selectAllText = document.createElement('span');
+            selectAllText.textContent = 'Pilih semua kategori';
+            selectAllLabel.append(selectAllCheckbox, selectAllText);
+            optionsContainer.appendChild(selectAllLabel);
+
+            if (categories.length === 0) {
+                const emptyLabel = document.createElement('p');
+                emptyLabel.className = 'text-[12px] text-[#7D8694]';
+                emptyLabel.textContent = 'Belum ada kategori';
+                optionsContainer.appendChild(emptyLabel);
+            }
+
+            categories.forEach(category => {
+                const optionLabel = document.createElement('label');
+                optionLabel.className = 'flex cursor-pointer items-center gap-2 text-[12px] text-[var(--text-primary)]';
+
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.value = category;
+                checkbox.dataset.categoryFilter = 'true';
+                checkbox.checked = !state.selectedCategoryFilters ||
+                    state.selectedCategoryFilters.some(selected => selected.toLocaleLowerCase() === category.toLocaleLowerCase());
+                checkbox.addEventListener('change', updateCategoryFilters);
+
+                const text = document.createElement('span');
+                text.textContent = category;
+                optionLabel.append(checkbox, text);
+                optionsContainer.appendChild(optionLabel);
+            });
+
+            label.textContent = state.selectedCategoryFilters
+                ? `Kategori (${state.selectedCategoryFilters.length})`
+                : 'Filter kategori';
+        }
+
+        function updateCategoryFilters() {
+            const checkboxes = Array.from(
+                document.querySelectorAll('#category-filter-options input[data-category-filter="true"]')
+            );
+            const selected = checkboxes.filter(checkbox => checkbox.checked).map(checkbox => checkbox.value);
+            state.selectedCategoryFilters = selected.length === checkboxes.length ? null : selected;
+            renderCategoryFilters();
+            renderInventoryTable();
+        }
+
+        function renderProductCategoryOptions(additionalCategories = []) {
+            const select = document.getElementById('input-category');
+            const selectedCategory = select.value;
+            const categories = [
+                ...Array.from(select.options, option => option.value),
+                ...state.customCategories,
+                ...additionalCategories
+            ];
+            const uniqueCategories = [...new Map(
+                categories
+                    .filter(category => typeof category === 'string' && category.trim())
+                    .map(category => [category.trim().toLocaleLowerCase(), category.trim()])
+            ).values()];
+
+            select.replaceChildren(...uniqueCategories.map(category => {
+                const option = document.createElement('option');
+                option.value = category;
+                option.textContent = category;
+                return option;
+            }));
+
+            if (uniqueCategories.some(category => category.toLocaleLowerCase() === selectedCategory.toLocaleLowerCase())) {
+                select.value = selectedCategory;
+            }
+        }
+
+        function loadCustomCategories() {
+            try {
+                const savedCategories = localStorage.getItem('wiradatha_custom_categories_v1');
+                const parsedCategories = savedCategories ? JSON.parse(savedCategories) : [];
+                state.customCategories = Array.isArray(parsedCategories)
+                    ? parsedCategories.filter(category => typeof category === 'string' && category.trim())
+                    : [];
+            } catch (error) {
+                console.warn('Could not read custom product categories:', error);
+            }
+            renderProductCategoryOptions();
+        }
+
+        function showAddCategoryForm() {
+            const container = document.getElementById('new-category-container');
+            container.classList.remove('hidden');
+            document.getElementById('new-category-name').focus();
+        }
+
+        function cancelAddCategory() {
+            document.getElementById('new-category-name').value = '';
+            document.getElementById('new-category-container').classList.add('hidden');
+        }
+
+        function addProductCategory() {
+            const input = document.getElementById('new-category-name');
+            const category = input.value.trim();
+            if (!category) {
+                showToast('Masukkan nama kategori terlebih dahulu.', 'error');
+                input.focus();
+                return;
+            }
+
+            const select = document.getElementById('input-category');
+            const existing = Array.from(select.options).find(
+                option => option.value.toLocaleLowerCase() === category.toLocaleLowerCase()
+            );
+            if (existing) {
+                select.value = existing.value;
+                cancelAddCategory();
+                showToast(`Kategori "${existing.value}" sudah tersedia.`, 'info');
+                return;
+            }
+
+            const customCategories = [...state.customCategories, category];
+            try {
+                localStorage.setItem('wiradatha_custom_categories_v1', JSON.stringify(customCategories));
+            } catch (error) {
+                showToast(`Kategori tidak dapat disimpan: ${error.message}`, 'error');
+                return;
+            }
+
+            state.customCategories = customCategories;
+            renderProductCategoryOptions();
+            select.value = category;
+            cancelAddCategory();
+            showToast(`Kategori "${category}" berhasil ditambahkan.`, 'success');
+        }
+
         async function loadCloudData() {
             const { data: memberships, error } = await supabaseClient
                 .from('memberships')
@@ -996,7 +1273,7 @@ let isAuthenticated = false;
 
             const { data: products, error: productsError } = await supabaseClient
                 .from('products')
-                .select('id, name, category, hpp, price, stock')
+                .select('id, name, category, hpp, price, stock, created_at')
                 .eq('business_id', activeBusinessId)
                 .order('name');
 
@@ -1006,6 +1283,8 @@ let isAuthenticated = false;
             }
 
             state.products = products || [];
+            renderProductCategoryOptions(state.products.map(product => product.category));
+            renderCategoryFilters();
             renderInventoryTable();
             await loadSalesForDisplayedYear();
         }
@@ -1030,10 +1309,12 @@ let isAuthenticated = false;
             if (salesError) {
                 showToast(salesError.message, 'error');
                 state.dashboardTotals = null;
+                state.productSales = {};
                 renderDashboard();
                 return;
             }
 
+            state.productSales = {};
             let totalSold = 0;
             let omzet = 0;
             let profit = 0;
@@ -1051,7 +1332,7 @@ let isAuthenticated = false;
                 const saleIds = sales.map(sale => sale.id);
                 const { data: items, error: itemsError } = await supabaseClient
                     .from('sale_items')
-                    .select('sale_id, quantity, price_at_sale, hpp_at_sale')
+                    .select('sale_id, product_id, quantity, price_at_sale, hpp_at_sale')
                     .in('sale_id', saleIds);
 
                 if (itemsError) {
@@ -1073,6 +1354,10 @@ let isAuthenticated = false;
                     const quantity = Number(item.quantity) || 0;
                     const priceAtSale = Number(item.price_at_sale) || 0;
                     const hppAtSale = Number(item.hpp_at_sale) || 0;
+                    if (item.product_id) {
+                        const productKey = String(item.product_id);
+                        state.productSales[productKey] = (state.productSales[productKey] || 0) + quantity;
+                    }
                     const sale = salesById.get(String(item.sale_id));
                     if (!sale || !Number.isInteger(sale.monthIndex) || !monthlyTotals[sale.monthIndex]) return;
 
@@ -1207,7 +1492,6 @@ let isAuthenticated = false;
             document.getElementById('auth-action-label').textContent = action;
             document.getElementById('auth-login-icon').classList.toggle('hidden', authenticated);
             document.getElementById('auth-logout-icon').classList.toggle('hidden', !authenticated);
-            document.getElementById('cloud-sync-container').classList.toggle('hidden', !authenticated);
             button.setAttribute('aria-label', authenticated ? 'Keluar dari akun' : 'Masuk ke akun');
             button.title = authenticated ? 'Keluar dari akun' : 'Masuk ke akun';
         }
@@ -1471,14 +1755,60 @@ let isAuthenticated = false;
         // =========================================================================
         // 6. RENDER MANAJEMEN STOK TABLE (Exact Visual Match)
         // =========================================================================
+        function toggleInventorySortDirection() {
+            state.inventorySortDirection = state.inventorySortDirection === 'asc' ? 'desc' : 'asc';
+            const directionButton = document.getElementById('inventory-sort-direction');
+            const isAscending = state.inventorySortDirection === 'asc';
+            const directionLabel = isAscending ? 'Asc' : 'Desc';
+            const directionDescription = isAscending
+                ? 'Urut naik (ascending)'
+                : 'Urut turun (descending)';
+            directionButton.innerHTML = `
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                    <path d="${isAscending ? 'M8 13V3M4.5 6.5L8 3L11.5 6.5' : 'M8 3V13M4.5 9.5L8 13L11.5 9.5'}"
+                        stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>${directionLabel}</span>
+            `;
+            directionButton.title = directionDescription;
+            directionButton.setAttribute('aria-label', directionDescription);
+            renderInventoryTable();
+        }
+
         function renderInventoryTable() {
             const tbody = document.getElementById('inventory-table-body');
             const emptyState = document.getElementById('empty-search-state');
             const query = (document.getElementById('search-product').value || '').trim().toLowerCase();
+            const sortField = document.getElementById('inventory-sort-field')?.value || 'name';
+            const direction = state.inventorySortDirection === 'asc' ? 1 : -1;
+            const selectedCategories = state.selectedCategoryFilters === null
+                ? null
+                : new Set(state.selectedCategoryFilters.map(category => category.toLocaleLowerCase()));
 
-            const filtered = state.products.filter(p =>
-                p.name.toLowerCase().includes(query) || p.category.toLowerCase().includes(query)
-            );
+            const filtered = state.products
+                .filter(product =>
+                    (!selectedCategories || selectedCategories.has(String(product.category || '').toLocaleLowerCase())) &&
+                    (product.name.toLowerCase().includes(query) || product.category.toLowerCase().includes(query))
+                )
+                .sort((a, b) => {
+                    let comparison = 0;
+
+                    if (sortField === 'name') {
+                        comparison = a.name.localeCompare(b.name, 'id');
+                    } else if (sortField === 'created') {
+                        comparison = new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime();
+                    } else if (sortField === 'sales') {
+                        comparison = (state.productSales[String(a.id)] || 0) - (state.productSales[String(b.id)] || 0);
+                    } else if (sortField === 'profit') {
+                        comparison = (a.price - a.hpp) - (b.price - b.hpp);
+                    } else if (sortField === 'stock') {
+                        comparison = (Number(a.stock) || 0) - (Number(b.stock) || 0);
+                    } else if (sortField === 'price') {
+                        comparison = (Number(a.price) || 0) - (Number(b.price) || 0);
+                    }
+
+                    return comparison * direction;
+                });
 
             tbody.innerHTML = '';
 
@@ -1570,7 +1900,7 @@ let isAuthenticated = false;
                         <button type="button" onclick="openDeleteProductModal('${String(prod.id).replace(/'/g, "\\'")}')"
                             aria-label="Hapus produk ${escapeHtml(prod.name)} beserta riwayatnya"
                             title="Hapus produk beserta seluruh riwayat penjualannya"
-                            class="w-[28px] h-[28px] rounded-[7px] inline-flex items-center justify-center text-red-500 bg-red-50 hover:bg-red-100 dark:bg-red-950/40 dark:hover:bg-red-950/70 active:scale-95 transition border border-red-200 dark:border-red-900">
+                            class="inventory-delete-btn w-[28px] h-[28px] rounded-[7px] inline-flex items-center justify-center text-red-500 bg-red-50 hover:bg-red-100 dark:bg-red-950/40 dark:hover:bg-red-950/70 active:scale-95 transition border border-red-200 dark:border-red-900">
                             <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                                 <path d="M3.5 4.5H12.5M6 2.5H10M5 4.5L5.4 13H10.6L11 4.5M6.7 7V10.8M9.3 7V10.8" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/>
                             </svg>
@@ -1891,37 +2221,6 @@ let isAuthenticated = false;
             }
         });
 
-        // =========================================================================
-        // 8. CLOUD SYNC PULSE & RESET DEMO MODAL
-        // =========================================================================
-        function triggerCloudSync() {
-            const svg = document.getElementById('cloud-sync-svg');
-            const label = document.getElementById('cloud-sync-text');
-
-            svg.classList.remove('animate-sync-spin');
-            label.textContent = 'Menyinkronkan...';
-            loadCloudData();
-
-            setTimeout(() => {
-                label.textContent = 'Cloud Sync Aktif';
-                showToast('Semua data stok & profit tersinkronisasi dengan Cloud', 'success');
-            }, 650);
-        }
-
-        function openResetModal() {
-            openConfirmModal(
-                'Reset Tampilan Lokal?',
-                'Hapus cache tampilan lokal. Data produk dan transaksi tetap tersimpan di Cloud.',
-                async () => {
-                    localStorage.removeItem('wiradatha_state_v1');
-                    loadState();
-                    await loadCloudData();
-                    resetFormState();
-                    showToast('Cache tampilan lokal berhasil dihapus', 'info');
-                }
-            );
-        }
-
         function openConfirmModal(title, message, onConfirm) {
             const modal = document.getElementById('confirm-modal');
             document.getElementById('modal-title').textContent = title;
@@ -1981,6 +2280,7 @@ let isAuthenticated = false;
         // Initialize Application
 window.addEventListener('DOMContentLoaded', async () => {
     initTheme();
+    loadCustomCategories();
 
     document.getElementById('login-form').addEventListener('submit', async (event) => {
         event.preventDefault();
