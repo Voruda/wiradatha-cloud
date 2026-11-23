@@ -683,11 +683,8 @@
             <div class="lg:col-span-4 app-card rounded-[20px] p-6">
                 <div class="flex items-center justify-between mb-5">
                     <h2 id="form-card-title" class="text-[17px] font-bold tracking-tight" style="color: var(--text-primary);">
-                        Tambah / Update Harga Produk
+                        Tambah Produk
                     </h2>
-                    <button type="button" id="clear-edit-btn" onclick="resetFormState()" class="hidden text-[11px] font-medium text-[#C74B92] hover:underline">
-                        Batal Edit
-                    </button>
                 </div>
 
                 <form id="product-form" class="space-y-4" novalidate>
@@ -785,6 +782,12 @@
                         <input type="file" id="input-product-image" accept="image/*"
                             class="app-input w-full rounded-[10px] px-3 py-2 text-[12px]">
                         <p id="product-image-status" class="mt-1 text-[11px] text-[#7D8694]"></p>
+                        <div id="product-image-preview" class="relative mt-2 hidden h-24 w-24">
+                            <img id="product-image-preview-source" alt="Pratinjau gambar produk" class="h-24 w-24 rounded-[10px] border border-[#C9D6DD] object-cover">
+                            <button type="button" onclick="cancelProductImage()"
+                                class="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-[#EF4444] text-[14px] font-bold text-white shadow-md"
+                                aria-label="Batalkan gambar yang dipilih" title="Batalkan gambar">×</button>
+                        </div>
                     </div>
 
                     <!-- Harga Modal + Harga Jual -->
@@ -928,6 +931,7 @@
                                 <th class="pb-3 px-3">PROFIT / PCS</th>
                                 <th class="pb-3 px-3 text-center">SISA STOK</th>
                                 <th class="pb-3 pl-3 text-center">CATAT PENJUALAN</th>
+                                <th class="pb-3 pl-3 text-center">AKSI</th>
                             </tr>
                         </thead>
                         <tbody id="inventory-table-body" class="divide-y app-divider text-[13px]">
@@ -1035,6 +1039,59 @@
     <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
     <!-- ==================== CUSTOM CONFIRMATION MODAL (No alert()/confirm() used) ==================== -->
+    <div id="edit-product-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 backdrop-blur-xs p-4">
+        <div class="app-card max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-[18px] p-5 sm:p-6">
+            <div class="mb-5 flex items-start justify-between gap-4">
+                <div>
+                    <h3 class="text-[17px] font-bold" style="color: var(--text-primary);">Edit Produk</h3>
+                    <p class="mt-1 text-[12px] text-[#7D8694] dark:text-[#94A3B8]">Perbarui detail produk pada jendela terpisah.</p>
+                </div>
+                <button type="button" onclick="closeEditProductModal()" class="flex h-8 w-8 items-center justify-center rounded-full text-[22px] leading-none text-[#7D8694] hover:bg-black/5 dark:hover:bg-white/10" aria-label="Tutup edit produk">×</button>
+            </div>
+
+            <form id="edit-product-form" class="space-y-4" novalidate>
+                <input type="hidden" id="edit-product-id">
+                <div>
+                    <label for="edit-product-name" class="mb-1.5 block text-[12.5px] font-medium">Nama produk</label>
+                    <input id="edit-product-name" type="text" required class="app-input w-full rounded-[10px] px-3.5 py-2.5 text-[13px]">
+                </div>
+                <div class="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
+                    <div>
+                        <label for="edit-product-category" class="mb-1.5 block text-[12.5px] font-medium">Kategori</label>
+                        <select id="edit-product-category" class="app-input w-full rounded-[10px] px-3.5 py-2.5 text-[13px]"></select>
+                    </div>
+                    <div>
+                        <label for="edit-product-stock" class="mb-1.5 block text-[12.5px] font-medium">Stok</label>
+                        <input id="edit-product-stock" type="number" min="0" step="1" class="app-input w-full rounded-[10px] px-3.5 py-2.5 text-[13px]">
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
+                    <div>
+                        <label for="edit-product-hpp" class="mb-1.5 block text-[12.5px] font-medium">Harga modal</label>
+                        <input id="edit-product-hpp" type="number" min="0" step="1000" required class="app-input w-full rounded-[10px] px-3.5 py-2.5 text-[13px]">
+                    </div>
+                    <div>
+                        <label for="edit-product-price" class="mb-1.5 block text-[12.5px] font-medium">Harga jual</label>
+                        <input id="edit-product-price" type="number" min="0" step="1000" required class="app-input w-full rounded-[10px] px-3.5 py-2.5 text-[13px]">
+                    </div>
+                </div>
+                <div>
+                    <label for="edit-product-image" class="mb-1.5 block text-[12.5px] font-medium">Gambar produk (maks. 1 MB)</label>
+                    <input id="edit-product-image" type="file" accept="image/*" class="app-input w-full rounded-[10px] px-3 py-2 text-[12px]">
+                    <p id="edit-product-image-status" class="mt-1 text-[11px] text-[#7D8694]"></p>
+                    <div id="edit-product-image-preview" class="relative mt-2 hidden h-24 w-24">
+                        <img id="edit-product-image-preview-source" alt="Pratinjau gambar produk" class="h-24 w-24 rounded-[10px] border border-[#C9D6DD] object-cover">
+                        <button type="button" onclick="cancelEditProductImage()" class="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-[#EF4444] text-[14px] font-bold text-white shadow-md" aria-label="Batalkan gambar baru" title="Batalkan gambar">×</button>
+                    </div>
+                </div>
+                <div class="flex justify-end gap-2.5 pt-2">
+                    <button type="button" onclick="closeEditProductModal()" class="app-input rounded-[10px] px-4 py-2 text-[12.5px] font-semibold">Batal</button>
+                    <button type="submit" class="rounded-[10px] bg-[#C74B92] px-4 py-2 text-[12.5px] font-semibold text-white hover:bg-[#B23D80]">Simpan Perubahan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div id="confirm-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 backdrop-blur-xs p-4">
         <div class="app-card max-w-sm w-full rounded-[18px] p-6 space-y-4">
             <h3 id="modal-title" class="text-[16px] font-bold" style="color: var(--text-primary);">Konfirmasi</h3>
@@ -2050,7 +2107,7 @@ let isAuthenticated = false;
 
                 tr.innerHTML = `
                     <!-- PRODUK -->
-                    <td class="py-3.5 pr-3 align-middle cursor-pointer" onclick="populateFormForEdit('${String(prod.id).replace(/'/g, "\\'")}')" title="Klik untuk edit harga/stok produk ini">
+                    <td class="py-3.5 pr-3 align-middle">
                         ${prod.image_url ? `<button type="button" class="mr-2 inline-block align-middle" onclick="event.stopPropagation(); openProductImage('${escapeHtml(prod.image_url)}','${escapeHtml(prod.name)}')" aria-label="Perbesar gambar ${escapeHtml(prod.name)}"><img src="${escapeHtml(prod.image_url)}" alt="${escapeHtml(prod.name)}" class="inline-block h-10 w-10 rounded-md object-cover"></button>` : ''}<div class="font-semibold text-[13px] text-[#353D49] dark:text-[#F0F6FC] group-hover:text-[#C74B92] transition-colors leading-snug">
                             ${escapeHtml(prod.name)}
                         </div>
@@ -2109,14 +2166,22 @@ let isAuthenticated = false;
 
                     <!-- HAPUS DATA PRODUK -->
                     <td class="py-3.5 pl-3 align-middle text-center whitespace-nowrap">
-                        <button type="button" onclick="openDeleteProductModal('${String(prod.id).replace(/'/g, "\\'")}')"
-                            aria-label="Hapus produk ${escapeHtml(prod.name)} beserta riwayatnya"
-                            title="Hapus produk beserta seluruh riwayat penjualannya"
-                            class="inventory-delete-btn w-[28px] h-[28px] rounded-[7px] inline-flex items-center justify-center text-red-500 bg-red-50 hover:bg-red-100 dark:bg-red-950/40 dark:hover:bg-red-950/70 active:scale-95 transition border border-red-200 dark:border-red-900">
-                            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                                <path d="M3.5 4.5H12.5M6 2.5H10M5 4.5L5.4 13H10.6L11 4.5M6.7 7V10.8M9.3 7V10.8" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
-                        </button>
+                        <div class="inline-flex items-center justify-center gap-1.5">
+                            <button type="button" onclick="openEditProductModal('${String(prod.id).replace(/'/g, "\\'")}')"
+                                aria-label="Edit produk ${escapeHtml(prod.name)}"
+                                title="Edit produk"
+                                class="h-[28px] rounded-[7px] border border-[#C9D6DD] bg-white px-2.5 text-[11px] font-semibold text-[#4B5563] hover:border-[#C74B92] hover:text-[#C74B92] dark:border-[#344158] dark:bg-[#1A2130] dark:text-[#CBD5E1] transition">
+                                Edit
+                            </button>
+                            <button type="button" onclick="openDeleteProductModal('${String(prod.id).replace(/'/g, "\\'")}')"
+                                aria-label="Hapus produk ${escapeHtml(prod.name)} beserta riwayatnya"
+                                title="Hapus produk beserta seluruh riwayat penjualannya"
+                                class="inventory-delete-btn w-[28px] h-[28px] rounded-[7px] inline-flex items-center justify-center text-red-500 bg-red-50 hover:bg-red-100 dark:bg-red-950/40 dark:hover:bg-red-950/70 active:scale-95 transition border border-red-200 dark:border-red-900">
+                                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                                    <path d="M3.5 4.5H12.5M6 2.5H10M5 4.5L5.4 13H10.6L11 4.5M6.7 7V10.8M9.3 7V10.8" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </button>
+                        </div>
                     </td>
                 `;
 
@@ -2335,36 +2400,120 @@ let isAuthenticated = false;
             }
         }
 
-        // Populate form when clicking a product row in Manajemen Stok
-        function populateFormForEdit(productId) {
+        let removeEditProductImage = false;
+
+        function cancelProductImage() {
+            const input = document.getElementById('input-product-image');
+            input.value = '';
+            document.getElementById('product-image-preview').classList.add('hidden');
+            document.getElementById('product-image-status').textContent = '';
+        }
+
+        function cancelEditProductImage() {
+            const input = document.getElementById('edit-product-image');
+            if (input.files.length > 0) {
+                input.value = '';
+                document.getElementById('edit-product-image-preview').classList.add('hidden');
+                document.getElementById('edit-product-image-status').textContent = '';
+                return;
+            }
+            removeEditProductImage = true;
+            document.getElementById('edit-product-image-preview').classList.add('hidden');
+            document.getElementById('edit-product-image-status').textContent = 'Gambar lama akan dihapus saat disimpan.';
+        }
+
+        function openEditProductModal(productId) {
             const prod = state.products.find(p => p.id === productId);
             if (!prod) return;
 
-            document.getElementById('editing-product-id').value = prod.id;
-            document.getElementById('input-name').value = prod.name;
-            document.getElementById('input-category').value = prod.category;
-            document.getElementById('input-stock').value = 0;
-            document.getElementById('input-hpp').value = prod.hpp;
-            document.getElementById('input-price').value = prod.price;
+            const categorySelect = document.getElementById('edit-product-category');
+            categorySelect.innerHTML = document.getElementById('input-category').innerHTML;
+            document.getElementById('edit-product-id').value = prod.id;
+            document.getElementById('edit-product-name').value = prod.name;
+            categorySelect.value = prod.category;
+            document.getElementById('edit-product-stock').value = Number(prod.stock) || 0;
+            document.getElementById('edit-product-hpp').value = prod.hpp;
+            document.getElementById('edit-product-price').value = prod.price;
+            document.getElementById('edit-product-image').value = '';
+            document.getElementById('edit-product-image-status').textContent = prod.image_url ? 'Gambar lama saat ini:' : 'Belum ada gambar.';
+            removeEditProductImage = false;
 
-            document.getElementById('clear-edit-btn').classList.remove('hidden');
-            document.getElementById('submit-catalog-label').textContent = 'Simpan Perubahan Produk';
-            updateLiveMarginPreview();
-
-            // Smooth scroll on mobile
-            if (window.innerWidth < 1024) {
-                document.getElementById('product-form').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            const preview = document.getElementById('edit-product-image-preview');
+            const previewSource = document.getElementById('edit-product-image-preview-source');
+            if (prod.image_url) {
+                previewSource.src = prod.image_url;
+                preview.classList.remove('hidden');
+            } else {
+                preview.classList.add('hidden');
             }
+
+            const modal = document.getElementById('edit-product-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.getElementById('edit-product-name').focus();
+        }
+
+        function closeEditProductModal() {
+            const modal = document.getElementById('edit-product-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            document.getElementById('edit-product-image').value = '';
+            document.getElementById('edit-product-image-preview').classList.add('hidden');
+            document.getElementById('edit-product-image-status').textContent = '';
+            removeEditProductImage = false;
         }
 
         function resetFormState() {
             document.getElementById('product-form').reset();
             document.getElementById('editing-product-id').value = '';
             document.getElementById('input-stock').value = 0;
-            document.getElementById('clear-edit-btn').classList.add('hidden');
             document.getElementById('submit-catalog-label').textContent = 'Tambahkan ke Daftar Katalog';
             document.getElementById('margin-preview-banner').classList.add('hidden');
+            cancelProductImage();
         }
+
+        document.getElementById('input-product-image').addEventListener('change', function () {
+            const file = this.files[0];
+            const status = document.getElementById('product-image-status');
+            const preview = document.getElementById('product-image-preview');
+            const source = document.getElementById('product-image-preview-source');
+            if (!file) {
+                preview.classList.add('hidden');
+                status.textContent = '';
+                return;
+            }
+            if (!file.type.startsWith('image/') || file.size > 1024 * 1024) {
+                this.value = '';
+                preview.classList.add('hidden');
+                status.textContent = 'Pilih gambar berformat image dengan ukuran maksimal 1 MB.';
+                return;
+            }
+            source.src = URL.createObjectURL(file);
+            preview.classList.remove('hidden');
+            status.textContent = `${file.name} (${Math.ceil(file.size / 1024)} KB)`;
+        });
+
+        document.getElementById('edit-product-image').addEventListener('change', function () {
+            const file = this.files[0];
+            const status = document.getElementById('edit-product-image-status');
+            const preview = document.getElementById('edit-product-image-preview');
+            const source = document.getElementById('edit-product-image-preview-source');
+            if (!file) {
+                preview.classList.add('hidden');
+                status.textContent = '';
+                return;
+            }
+            if (!file.type.startsWith('image/') || file.size > 1024 * 1024) {
+                this.value = '';
+                preview.classList.add('hidden');
+                status.textContent = 'Pilih gambar berformat image dengan ukuran maksimal 1 MB.';
+                return;
+            }
+            removeEditProductImage = false;
+            source.src = URL.createObjectURL(file);
+            preview.classList.remove('hidden');
+            status.textContent = `${file.name} (${Math.ceil(file.size / 1024)} KB)`;
+        });
 
         // Form Submit Handler: Add New Product OR Update Existing Product
         document.getElementById('product-form').addEventListener('submit', function (e) {
@@ -2466,6 +2615,81 @@ let isAuthenticated = false;
                 );
             } else {
                 commitSave();
+            }
+        });
+
+        document.getElementById('edit-product-form').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const productId = document.getElementById('edit-product-id').value;
+            const name = document.getElementById('edit-product-name').value.trim();
+            const category = document.getElementById('edit-product-category').value;
+            const stock = parseInt(document.getElementById('edit-product-stock').value, 10);
+            const hpp = parseFloat(document.getElementById('edit-product-hpp').value);
+            const price = parseFloat(document.getElementById('edit-product-price').value);
+            const imageFile = document.getElementById('edit-product-image').files[0];
+
+            if (!productId || !name) {
+                showToast('Nama produk wajib diisi.', 'error');
+                return;
+            }
+            if (isNaN(stock) || stock < 0 || isNaN(hpp) || isNaN(price) || price <= 0) {
+                showToast('Masukkan stok, harga modal, dan harga jual yang valid.', 'error');
+                return;
+            }
+            if (imageFile && (!imageFile.type.startsWith('image/') || imageFile.size > 1024 * 1024)) {
+                showToast('Pilih file gambar dengan ukuran maksimal 1 MB.', 'error');
+                return;
+            }
+
+            const saveEdit = async () => {
+                const updates = { name, category, stock, hpp, price };
+                if (removeEditProductImage) updates.image_url = null;
+
+                const { error } = await supabaseClient
+                    .from('products')
+                    .update(updates)
+                    .eq('id', productId)
+                    .eq('business_id', activeBusinessId);
+
+                if (error) {
+                    showToast(error.message, 'error');
+                    return;
+                }
+
+                if (imageFile) {
+                    const extension = imageFile.name.split('.').pop().toLowerCase().replace(/[^a-z0-9]/g, '') || 'image';
+                    const imagePath = `${activeBusinessId}/${productId}/${crypto.randomUUID()}.${extension}`;
+                    const { error: uploadError } = await supabaseClient.storage.from('product-images').upload(imagePath, imageFile, { upsert: true, contentType: imageFile.type });
+                    if (uploadError) {
+                        showToast(`Gambar gagal diunggah: ${uploadError.message}`, 'error');
+                        return;
+                    }
+                    const { data: publicUrl } = supabaseClient.storage.from('product-images').getPublicUrl(imagePath);
+                    const { error: imageUpdateError } = await supabaseClient
+                        .from('products')
+                        .update({ image_url: publicUrl.publicUrl })
+                        .eq('id', productId)
+                        .eq('business_id', activeBusinessId);
+                    if (imageUpdateError) {
+                        showToast(`Gambar tersimpan, tetapi tautan gagal disimpan: ${imageUpdateError.message}`, 'error');
+                        return;
+                    }
+                }
+
+                closeEditProductModal();
+                await loadCloudData();
+                showToast(`Produk "${name}" berhasil diperbarui!`, 'success');
+            };
+
+            if (price < hpp) {
+                openConfirmModal(
+                    'Peringatan Harga Jual Rugi',
+                    `Harga jual (${formatTableCurrency(price)}) lebih rendah dari harga modal (${formatTableCurrency(hpp)}). Tetap simpan perubahan ini?`,
+                    saveEdit
+                );
+            } else {
+                await saveEdit();
             }
         });
 
