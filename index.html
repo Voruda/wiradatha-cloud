@@ -1505,11 +1505,22 @@ let isAuthenticated = false;
             document.getElementById('app-main').classList.remove('hidden');
             document.getElementById('business-form').classList.add('hidden');
 
-            const { data: products, error: productsError } = await supabaseClient
+            let { data: products, error: productsError } = await supabaseClient
                 .from('products')
                 .select('id, name, category, hpp, price, stock, created_at, image_url')
                 .eq('business_id', activeBusinessId)
                 .order('name');
+
+            if (productsError && String(productsError.message || '').toLowerCase().includes('image_url')) {
+                const fallbackResult = await supabaseClient
+                    .from('products')
+                    .select('id, name, category, hpp, price, stock, created_at')
+                    .eq('business_id', activeBusinessId)
+                    .order('name');
+                products = fallbackResult.data;
+                productsError = fallbackResult.error;
+                if (!productsError) products = products.map(product => ({ ...product, image_url: null }));
+            }
 
             if (productsError) {
                 showToast(productsError.message, 'error');
@@ -2550,6 +2561,8 @@ let isAuthenticated = false;
 
             const commitSave = async () => {
                 let savedProductId = existing?.id;
+                let saveMessage = '';
+                let imageWarning = '';
                 if (existing) {
                     const { error } = await supabaseClient
                         .from('products')
@@ -2566,7 +2579,7 @@ let isAuthenticated = false;
                         showToast(error.message, 'error');
                         return;
                     }
-                    showToast(`Produk "${name}" berhasil diperbarui!`, 'success');
+                    saveMessage = `Produk "${name}" berhasil diperbarui!`;
                 } else {
                     const { data: inserted, error } = await supabaseClient
                         .from('products')
@@ -2584,7 +2597,7 @@ let isAuthenticated = false;
                         return;
                     }
                     savedProductId = inserted.id;
-                    showToast(`"${name}" ditambahkan ke daftar katalog!`, 'success');
+                    saveMessage = `"${name}" ditambahkan ke daftar katalog!`;
                 }
 
                 if (imageFile) {
@@ -2592,19 +2605,23 @@ let isAuthenticated = false;
                     const imagePath = `${activeBusinessId}/${savedProductId}/${crypto.randomUUID()}.${extension}`;
                     const { error: uploadError } = await supabaseClient.storage.from('product-images').upload(imagePath, imageFile, { upsert: true, contentType: imageFile.type });
                     if (uploadError) {
-                        const uploadMessage = /bucket not found/i.test(uploadError.message)
+                        imageWarning = /bucket not found/i.test(uploadError.message)
                             ? 'Bucket "product-images" belum tersedia. Buat bucket tersebut di Supabase Storage dan atur akses/policy upload.'
                             : `Gambar gagal diunggah: ${uploadError.message}`;
-                        showToast(uploadMessage, 'error');
-                        return;
+                    } else {
+                        const { data: publicUrl } = supabaseClient.storage.from('product-images').getPublicUrl(imagePath);
+                        const { error: imageUpdateError } = await supabaseClient.from('products').update({ image_url: publicUrl.publicUrl }).eq('id', savedProductId);
+                        if (imageUpdateError) imageWarning = `Gambar diunggah, tetapi tautannya gagal disimpan: ${imageUpdateError.message}`;
                     }
-                    const { data: publicUrl } = supabaseClient.storage.from('product-images').getPublicUrl(imagePath);
-                    const { error: imageUpdateError } = await supabaseClient.from('products').update({ image_url: publicUrl.publicUrl }).eq('id', savedProductId);
-                    if (imageUpdateError) { showToast(`Gambar tersimpan, tetapi tautan gagal disimpan: ${imageUpdateError.message}`, 'error'); return; }
                 }
 
                 await loadCloudData();
                 resetFormState();
+                if (imageWarning) {
+                    showToast(`${saveMessage} Gambar tidak tersimpan: ${imageWarning}`, 'error');
+                } else {
+                    showToast(saveMessage, 'success');
+                }
             };
 
             if (price < hpp) {
@@ -2646,11 +2663,23 @@ let isAuthenticated = false;
                 const updates = { name, category, stock, hpp, price };
                 if (removeEditProductImage) updates.image_url = null;
 
-                const { error } = await supabaseClient
+                let { error } = await supabaseClient
                     .from('products')
                     .update(updates)
                     .eq('id', productId)
                     .eq('business_id', activeBusinessId);
+
+                let imageWarning = '';
+                if (error && removeEditProductImage && String(error.message || '').toLowerCase().includes('image_url')) {
+                    delete updates.image_url;
+                    const retryResult = await supabaseClient
+                        .from('products')
+                        .update(updates)
+                        .eq('id', productId)
+                        .eq('business_id', activeBusinessId);
+                    error = retryResult.error;
+                    imageWarning = 'Kolom image_url belum tersedia; gambar lama tidak dapat dihapus. Jalankan SQL setup gambar produk.';
+                }
 
                 if (error) {
                     showToast(error.message, 'error');
@@ -2662,24 +2691,25 @@ let isAuthenticated = false;
                     const imagePath = `${activeBusinessId}/${productId}/${crypto.randomUUID()}.${extension}`;
                     const { error: uploadError } = await supabaseClient.storage.from('product-images').upload(imagePath, imageFile, { upsert: true, contentType: imageFile.type });
                     if (uploadError) {
-                        showToast(`Gambar gagal diunggah: ${uploadError.message}`, 'error');
-                        return;
-                    }
-                    const { data: publicUrl } = supabaseClient.storage.from('product-images').getPublicUrl(imagePath);
-                    const { error: imageUpdateError } = await supabaseClient
-                        .from('products')
-                        .update({ image_url: publicUrl.publicUrl })
-                        .eq('id', productId)
-                        .eq('business_id', activeBusinessId);
-                    if (imageUpdateError) {
-                        showToast(`Gambar tersimpan, tetapi tautan gagal disimpan: ${imageUpdateError.message}`, 'error');
-                        return;
+                        imageWarning = `Gambar gagal diunggah: ${uploadError.message}`;
+                    } else {
+                        const { data: publicUrl } = supabaseClient.storage.from('product-images').getPublicUrl(imagePath);
+                        const { error: imageUpdateError } = await supabaseClient
+                            .from('products')
+                            .update({ image_url: publicUrl.publicUrl })
+                            .eq('id', productId)
+                            .eq('business_id', activeBusinessId);
+                        if (imageUpdateError) imageWarning = `Gambar diunggah, tetapi tautannya gagal disimpan: ${imageUpdateError.message}`;
                     }
                 }
 
                 closeEditProductModal();
                 await loadCloudData();
-                showToast(`Produk "${name}" berhasil diperbarui!`, 'success');
+                if (imageWarning) {
+                    showToast(`Detail produk "${name}" berhasil diperbarui. ${imageWarning}`, 'error');
+                } else {
+                    showToast(`Produk "${name}" berhasil diperbarui!`, 'success');
+                }
             };
 
             if (price < hpp) {
