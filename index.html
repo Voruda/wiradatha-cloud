@@ -748,6 +748,10 @@
                                     </button>
                                 </div>
                             </div>
+                            <button type="button" onclick="openDeleteCategoryModal()"
+                                class="mt-2 text-[11px] font-semibold text-red-600 hover:underline">
+                                Hapus kategori terpilih
+                            </button>
                         </div>
 
                         <!-- Update Stok (kurangi/tambahkan) -->
@@ -774,6 +778,13 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
+
+                    <div>
+                        <label for="input-product-image" class="mb-1.5 block text-[12.5px] font-medium text-[#3C4450] dark:text-[#CBD5E1]">Gambar produk (maks. 1 MB)</label>
+                        <input type="file" id="input-product-image" accept="image/*"
+                            class="app-input w-full rounded-[10px] px-3 py-2 text-[12px]">
+                        <p id="product-image-status" class="mt-1 text-[11px] text-[#7D8694]"></p>
                     </div>
 
                     <!-- Harga Modal + Harga Jual -->
@@ -1028,6 +1039,7 @@
         <div class="app-card max-w-sm w-full rounded-[18px] p-6 space-y-4">
             <h3 id="modal-title" class="text-[16px] font-bold" style="color: var(--text-primary);">Konfirmasi</h3>
             <p id="modal-message" class="text-[13px] text-[#5D6673] dark:text-[#94A3B8] leading-relaxed"></p>
+            <input id="modal-required-text" type="text" autocomplete="off" class="app-input hidden w-full rounded-[8px] px-3 py-2 text-[13px]" aria-label="Ketik kata konfirmasi">
             <div class="flex items-center justify-end gap-2.5 pt-2">
                 <button id="modal-cancel-btn" onclick="closeConfirmModal()"
                     class="px-4 py-2 rounded-[10px] text-[12.5px] font-semibold app-input hover:opacity-80 transition">
@@ -1195,6 +1207,7 @@ let isAuthenticated = false;
         let state = {
             products: [],
             customCategories: [],
+            deletedCategories: [],
             selectedCategoryFilters: null,
             productSales: {},
             inventorySortDirection: 'asc',
@@ -1293,6 +1306,7 @@ let isAuthenticated = false;
             const uniqueCategories = [...new Map(
                 categories
                     .filter(category => typeof category === 'string' && category.trim())
+                    .filter(category => !state.deletedCategories.some(deleted => deleted.toLocaleLowerCase() === category.trim().toLocaleLowerCase()))
                     .map(category => [category.trim().toLocaleLowerCase(), category.trim()])
             ).values()];
 
@@ -1315,6 +1329,8 @@ let isAuthenticated = false;
                 state.customCategories = Array.isArray(parsedCategories)
                     ? parsedCategories.filter(category => typeof category === 'string' && category.trim())
                     : [];
+                const deleted = JSON.parse(localStorage.getItem('wiradatha_deleted_categories_v1') || '[]');
+                state.deletedCategories = Array.isArray(deleted) ? deleted.filter(category => typeof category === 'string') : [];
             } catch (error) {
                 console.warn('Could not read custom product categories:', error);
             }
@@ -1367,6 +1383,47 @@ let isAuthenticated = false;
             showToast(`Kategori "${category}" berhasil ditambahkan.`, 'success');
         }
 
+        function openDeleteCategoryModal() {
+            const category = document.getElementById('input-category').value;
+            if (!category) return showToast('Pilih kategori yang ingin dihapus.', 'error');
+            const count = state.products.filter(product => String(product.category || '').toLocaleLowerCase() === category.toLocaleLowerCase()).length;
+            openConfirmModal('Hapus kategori dan produk?', `PERINGATAN: kategori "${category}" dan ${count} produk di dalamnya beserta riwayat penjualan terkait akan dihapus permanen. Ketik "benar" untuk melanjutkan.`, () => deleteCategoryCompletely(category), 'benar');
+        }
+
+        async function deleteCategoryCompletely(category) {
+            const products = state.products.filter(product => String(product.category || '').toLocaleLowerCase() === category.toLocaleLowerCase());
+            for (const product of products) {
+                const { data: linkedItems, error: linkedError } = await supabaseClient.from('sale_items').select('sale_id').eq('product_id', product.id);
+                if (linkedError) return showToast(linkedError.message, 'error');
+                const saleIds = [...new Set((linkedItems || []).map(item => item.sale_id).filter(Boolean))];
+                const { error: itemsError } = await supabaseClient.from('sale_items').delete().eq('product_id', product.id);
+                if (itemsError) return showToast(itemsError.message, 'error');
+                if (saleIds.length) {
+                    const { data: remaining, error: remainingError } = await supabaseClient.from('sale_items').select('sale_id').in('sale_id', saleIds);
+                    if (remainingError) return showToast(remainingError.message, 'error');
+                    const stillUsed = new Set((remaining || []).map(item => String(item.sale_id)));
+                    const emptyIds = saleIds.filter(id => !stillUsed.has(String(id)));
+                    if (emptyIds.length) {
+                        const { error: salesError } = await supabaseClient.from('sales').delete().in('id', emptyIds);
+                        if (salesError) return showToast(salesError.message, 'error');
+                    }
+                }
+                if (product.image_url) {
+                    const path = product.image_url.split('/product-images/')[1];
+                    if (path) await supabaseClient.storage.from('product-images').remove([decodeURIComponent(path.split('?')[0])]);
+                }
+            }
+            const { error } = await supabaseClient.from('products').delete().eq('business_id', activeBusinessId).eq('category', category);
+            if (error) return showToast(error.message, 'error');
+            state.customCategories = state.customCategories.filter(item => item.toLocaleLowerCase() !== category.toLocaleLowerCase());
+            state.deletedCategories = [...new Set([...state.deletedCategories, category])];
+            localStorage.setItem('wiradatha_custom_categories_v1', JSON.stringify(state.customCategories));
+            localStorage.setItem('wiradatha_deleted_categories_v1', JSON.stringify(state.deletedCategories));
+            renderProductCategoryOptions();
+            await loadCloudData();
+            showToast(`Kategori "${category}" dan produknya telah dihapus.`, 'success');
+        }
+
         async function loadCloudData() {
             const { data: memberships, error } = await supabaseClient
                 .from('memberships')
@@ -1393,7 +1450,7 @@ let isAuthenticated = false;
 
             const { data: products, error: productsError } = await supabaseClient
                 .from('products')
-                .select('id, name, category, hpp, price, stock, created_at')
+                .select('id, name, category, hpp, price, stock, created_at, image_url')
                 .eq('business_id', activeBusinessId)
                 .order('name');
 
@@ -1994,7 +2051,7 @@ let isAuthenticated = false;
                 tr.innerHTML = `
                     <!-- PRODUK -->
                     <td class="py-3.5 pr-3 align-middle cursor-pointer" onclick="populateFormForEdit('${String(prod.id).replace(/'/g, "\\'")}')" title="Klik untuk edit harga/stok produk ini">
-                        <div class="font-semibold text-[13px] text-[#353D49] dark:text-[#F0F6FC] group-hover:text-[#C74B92] transition-colors leading-snug">
+                        ${prod.image_url ? `<button type="button" class="mr-2 inline-block align-middle" onclick="event.stopPropagation(); openProductImage('${escapeHtml(prod.image_url)}','${escapeHtml(prod.name)}')" aria-label="Perbesar gambar ${escapeHtml(prod.name)}"><img src="${escapeHtml(prod.image_url)}" alt="${escapeHtml(prod.name)}" class="inline-block h-10 w-10 rounded-md object-cover"></button>` : ''}<div class="font-semibold text-[13px] text-[#353D49] dark:text-[#F0F6FC] group-hover:text-[#C74B92] transition-colors leading-snug">
                             ${escapeHtml(prod.name)}
                         </div>
                         <span class="cat-badge inline-block mt-1 px-2 py-[2px] rounded-[4px] text-[10.5px] font-medium leading-tight">
@@ -2065,6 +2122,18 @@ let isAuthenticated = false;
 
                 tbody.appendChild(tr);
             });
+        }
+
+        function openProductImage(url, name) {
+            const overlay = document.createElement('div');
+            overlay.className = 'fixed inset-0 z-[60] flex items-center justify-center bg-black/80 p-4';
+            overlay.setAttribute('role', 'dialog');
+            overlay.setAttribute('aria-label', `Gambar ${name}`);
+            overlay.innerHTML = `<button type="button" class="absolute right-5 top-5 text-3xl text-white" aria-label="Tutup">&times;</button><img src="${escapeHtml(url)}" alt="${escapeHtml(name)}" class="max-h-[90vh] max-w-[90vw] cursor-zoom-in object-contain transition-transform" style="transform:scale(1)">`;
+            const image = overlay.querySelector('img');
+            image.addEventListener('click', () => image.style.transform = image.style.transform === 'scale(1.7)' ? 'scale(1)' : 'scale(1.7)');
+            overlay.addEventListener('click', event => { if (event.target === overlay || event.target.tagName === 'BUTTON') overlay.remove(); });
+            document.body.appendChild(overlay);
         }
 
         // =========================================================================
@@ -2307,6 +2376,12 @@ let isAuthenticated = false;
             const stockDelta = parseInt(document.getElementById('input-stock').value, 10) || 0;
             const hpp = parseFloat(document.getElementById('input-hpp').value);
             const price = parseFloat(document.getElementById('input-price').value);
+            const imageFile = document.getElementById('input-product-image').files[0];
+
+            if (imageFile && (!imageFile.type.startsWith('image/') || imageFile.size > 1024 * 1024)) {
+                showToast('Pilih file gambar dengan ukuran maksimal 1 MB.', 'error');
+                return;
+            }
 
             if (!name) {
                 showToast('Masukkan nama produk terlebih dahulu.', 'error');
@@ -2325,6 +2400,7 @@ let isAuthenticated = false;
                 : state.products.find(p => p.name.toLowerCase() === name.toLowerCase());
 
             const commitSave = async () => {
+                let savedProductId = existing?.id;
                 if (existing) {
                     const { error } = await supabaseClient
                         .from('products')
@@ -2343,7 +2419,7 @@ let isAuthenticated = false;
                     }
                     showToast(`Produk "${name}" berhasil diperbarui!`, 'success');
                 } else {
-                    const { error } = await supabaseClient
+                    const { data: inserted, error } = await supabaseClient
                         .from('products')
                         .insert({
                             business_id: activeBusinessId,
@@ -2352,13 +2428,24 @@ let isAuthenticated = false;
                             hpp,
                             price,
                             stock: Math.max(0, stockDelta)
-                        });
+                        }).select('id').single();
 
                     if (error) {
                         showToast(error.message, 'error');
                         return;
                     }
+                    savedProductId = inserted.id;
                     showToast(`"${name}" ditambahkan ke daftar katalog!`, 'success');
+                }
+
+                if (imageFile) {
+                    const extension = imageFile.name.split('.').pop().toLowerCase().replace(/[^a-z0-9]/g, '') || 'image';
+                    const imagePath = `${activeBusinessId}/${savedProductId}/${crypto.randomUUID()}.${extension}`;
+                    const { error: uploadError } = await supabaseClient.storage.from('product-images').upload(imagePath, imageFile, { upsert: true, contentType: imageFile.type });
+                    if (uploadError) { showToast(`Gambar gagal diunggah: ${uploadError.message}`, 'error'); return; }
+                    const { data: publicUrl } = supabaseClient.storage.from('product-images').getPublicUrl(imagePath);
+                    const { error: imageUpdateError } = await supabaseClient.from('products').update({ image_url: publicUrl.publicUrl }).eq('id', savedProductId);
+                    if (imageUpdateError) { showToast(`Gambar tersimpan, tetapi tautan gagal disimpan: ${imageUpdateError.message}`, 'error'); return; }
                 }
 
                 await loadCloudData();
@@ -2376,13 +2463,22 @@ let isAuthenticated = false;
             }
         });
 
-        function openConfirmModal(title, message, onConfirm) {
+        function openConfirmModal(title, message, onConfirm, requiredText = '') {
             const modal = document.getElementById('confirm-modal');
             document.getElementById('modal-title').textContent = title;
             document.getElementById('modal-message').textContent = message;
+            const requiredInput = document.getElementById('modal-required-text');
+            requiredInput.value = '';
+            requiredInput.classList.toggle('hidden', !requiredText);
+            requiredInput.placeholder = requiredText ? `Ketik ${requiredText} untuk konfirmasi` : '';
 
             const confirmBtn = document.getElementById('modal-confirm-btn');
             confirmBtn.onclick = () => {
+                if (requiredText && requiredInput.value.trim() !== requiredText) {
+                    showToast(`Ketik "${requiredText}" dengan benar untuk melanjutkan.`, 'error');
+                    requiredInput.focus();
+                    return;
+                }
                 closeConfirmModal();
                 if (typeof onConfirm === 'function') onConfirm();
             };
@@ -2395,6 +2491,7 @@ let isAuthenticated = false;
             const modal = document.getElementById('confirm-modal');
             modal.classList.add('hidden');
             modal.classList.remove('flex');
+            document.getElementById('modal-required-text').value = '';
         }
 
         // =========================================================================
