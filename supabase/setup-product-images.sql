@@ -15,18 +15,14 @@ SET public = EXCLUDED.public,
     allowed_mime_types = EXCLUDED.allowed_mime_types;
 
 DROP POLICY IF EXISTS "Product image members can upload" ON storage.objects;
-CREATE POLICY "Product image members can upload"
+DROP POLICY IF EXISTS "Product image owners can upload" ON storage.objects;
+CREATE POLICY "Product image owners can upload"
 ON storage.objects
 FOR INSERT
 TO authenticated
 WITH CHECK (
     bucket_id = 'product-images'
-    AND EXISTS (
-        SELECT 1
-        FROM public.products AS product
-        WHERE product.business_id::text = (storage.foldername(name))[1]
-          AND product.id::text = (storage.foldername(name))[2]
-    )
+    AND auth.uid()::text = (storage.foldername(name))[1]
 );
 
 DROP POLICY IF EXISTS "Product image members can update" ON storage.objects;
@@ -66,6 +62,30 @@ USING (
         WHERE product.business_id::text = (storage.foldername(name))[1]
           AND product.id::text = (storage.foldername(name))[2]
     )
+);
+
+DROP POLICY IF EXISTS "Product image owners can update" ON storage.objects;
+CREATE POLICY "Product image owners can update"
+ON storage.objects
+FOR UPDATE
+TO authenticated
+USING (
+    bucket_id = 'product-images'
+    AND auth.uid()::text = (storage.foldername(name))[1]
+)
+WITH CHECK (
+    bucket_id = 'product-images'
+    AND auth.uid()::text = (storage.foldername(name))[1]
+);
+
+DROP POLICY IF EXISTS "Product image owners can delete" ON storage.objects;
+CREATE POLICY "Product image owners can delete"
+ON storage.objects
+FOR DELETE
+TO authenticated
+USING (
+    bucket_id = 'product-images'
+    AND auth.uid()::text = (storage.foldername(name))[1]
 );
 
 NOTIFY pgrst, 'reload schema';

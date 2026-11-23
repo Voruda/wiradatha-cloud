@@ -2601,17 +2601,23 @@ let isAuthenticated = false;
                 }
 
                 if (imageFile) {
-                    const extension = imageFile.name.split('.').pop().toLowerCase().replace(/[^a-z0-9]/g, '') || 'image';
-                    const imagePath = `${activeBusinessId}/${savedProductId}/${crypto.randomUUID()}.${extension}`;
-                    const { error: uploadError } = await supabaseClient.storage.from('product-images').upload(imagePath, imageFile, { upsert: true, contentType: imageFile.type });
-                    if (uploadError) {
-                        imageWarning = /bucket not found/i.test(uploadError.message)
-                            ? 'Bucket "product-images" belum tersedia. Buat bucket tersebut di Supabase Storage dan atur akses/policy upload.'
-                            : `Gambar gagal diunggah: ${uploadError.message}`;
+                    const { data: sessionData, error: sessionError } = await supabaseClient.auth.getSession();
+                    const userId = sessionData?.session?.user?.id;
+                    if (sessionError || !userId) {
+                        imageWarning = sessionError?.message || 'Sesi login tidak ditemukan. Silakan masuk kembali sebelum mengunggah gambar.';
                     } else {
-                        const { data: publicUrl } = supabaseClient.storage.from('product-images').getPublicUrl(imagePath);
-                        const { error: imageUpdateError } = await supabaseClient.from('products').update({ image_url: publicUrl.publicUrl }).eq('id', savedProductId);
-                        if (imageUpdateError) imageWarning = `Gambar diunggah, tetapi tautannya gagal disimpan: ${imageUpdateError.message}`;
+                        const extension = imageFile.name.split('.').pop().toLowerCase().replace(/[^a-z0-9]/g, '') || 'image';
+                        const imagePath = `${userId}/${activeBusinessId}/${savedProductId}/${crypto.randomUUID()}.${extension}`;
+                        const { error: uploadError } = await supabaseClient.storage.from('product-images').upload(imagePath, imageFile, { upsert: false, contentType: imageFile.type });
+                        if (uploadError) {
+                            imageWarning = /bucket not found/i.test(uploadError.message)
+                                ? 'Bucket "product-images" belum tersedia. Jalankan SQL setup gambar produk di Supabase.'
+                                : `Gambar gagal diunggah: ${uploadError.message}`;
+                        } else {
+                            const { data: publicUrl } = supabaseClient.storage.from('product-images').getPublicUrl(imagePath);
+                            const { error: imageUpdateError } = await supabaseClient.from('products').update({ image_url: publicUrl.publicUrl }).eq('id', savedProductId);
+                            if (imageUpdateError) imageWarning = `Gambar diunggah, tetapi tautannya gagal disimpan: ${imageUpdateError.message}`;
+                        }
                     }
                 }
 
@@ -2687,19 +2693,25 @@ let isAuthenticated = false;
                 }
 
                 if (imageFile) {
-                    const extension = imageFile.name.split('.').pop().toLowerCase().replace(/[^a-z0-9]/g, '') || 'image';
-                    const imagePath = `${activeBusinessId}/${productId}/${crypto.randomUUID()}.${extension}`;
-                    const { error: uploadError } = await supabaseClient.storage.from('product-images').upload(imagePath, imageFile, { upsert: true, contentType: imageFile.type });
-                    if (uploadError) {
-                        imageWarning = `Gambar gagal diunggah: ${uploadError.message}`;
+                    const { data: sessionData, error: sessionError } = await supabaseClient.auth.getSession();
+                    const userId = sessionData?.session?.user?.id;
+                    if (sessionError || !userId) {
+                        imageWarning = sessionError?.message || 'Sesi login tidak ditemukan. Silakan masuk kembali sebelum mengunggah gambar.';
                     } else {
-                        const { data: publicUrl } = supabaseClient.storage.from('product-images').getPublicUrl(imagePath);
-                        const { error: imageUpdateError } = await supabaseClient
-                            .from('products')
-                            .update({ image_url: publicUrl.publicUrl })
-                            .eq('id', productId)
-                            .eq('business_id', activeBusinessId);
-                        if (imageUpdateError) imageWarning = `Gambar diunggah, tetapi tautannya gagal disimpan: ${imageUpdateError.message}`;
+                        const extension = imageFile.name.split('.').pop().toLowerCase().replace(/[^a-z0-9]/g, '') || 'image';
+                        const imagePath = `${userId}/${activeBusinessId}/${productId}/${crypto.randomUUID()}.${extension}`;
+                        const { error: uploadError } = await supabaseClient.storage.from('product-images').upload(imagePath, imageFile, { upsert: false, contentType: imageFile.type });
+                        if (uploadError) {
+                            imageWarning = `Gambar gagal diunggah: ${uploadError.message}`;
+                        } else {
+                            const { data: publicUrl } = supabaseClient.storage.from('product-images').getPublicUrl(imagePath);
+                            const { error: imageUpdateError } = await supabaseClient
+                                .from('products')
+                                .update({ image_url: publicUrl.publicUrl })
+                                .eq('id', productId)
+                                .eq('business_id', activeBusinessId);
+                            if (imageUpdateError) imageWarning = `Gambar diunggah, tetapi tautannya gagal disimpan: ${imageUpdateError.message}`;
+                        }
                     }
                 }
 
