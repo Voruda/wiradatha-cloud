@@ -193,7 +193,9 @@
 
         main #submit-catalog-btn svg,
         main #inventory-sort-direction svg,
-        main #inventory-table-body .inventory-delete-btn svg {
+        main #inventory-table-body .inventory-delete-btn svg,
+        main #previous-year-button svg,
+        main #next-year-button svg {
             display: block !important;
         }
 
@@ -540,7 +542,7 @@
         <div class="flex items-center justify-between">
             <div class="inline-flex items-center gap-2 select-none">
                 <button id="previous-year-button" onclick="changeMonth(-1)" aria-label="Bulan Sebelumnya"
-                    class="p-1 rounded hover:bg-black/5 dark:hover:bg-white/10 text-[#8D95A0] hover:text-[#C74B92] transition disabled:opacity-40 disabled:cursor-not-allowed">
+                    class="p-1 rounded hover:bg-black/5 dark:hover:bg-white/10 text-[#8D95A0] dark:text-[#B8C4D6] hover:text-[#C74B92] transition disabled:opacity-40 disabled:cursor-not-allowed">
                     <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M10.5 3L5.5 8L10.5 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
@@ -549,7 +551,7 @@
                     RINGKASAN BULAN
                 </h2>
                 <button id="next-year-button" onclick="changeMonth(1)" aria-label="Bulan Berikutnya"
-                    class="p-1 rounded hover:bg-black/5 dark:hover:bg-white/10 text-[#8D95A0] hover:text-[#C74B92] transition disabled:opacity-40 disabled:cursor-not-allowed">
+                    class="p-1 rounded hover:bg-black/5 dark:hover:bg-white/10 text-[#8D95A0] dark:text-[#B8C4D6] hover:text-[#C74B92] transition disabled:opacity-40 disabled:cursor-not-allowed">
                     <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M5.5 3L10.5 8L5.5 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
@@ -942,7 +944,7 @@
             </button>
             <div class="inline-flex items-center gap-2 select-none">
                 <button id="report-previous-year-button" type="button" onclick="changeYear(-1)" aria-label="Tahun Sebelumnya"
-                    class="p-1 rounded hover:bg-black/5 dark:hover:bg-white/10 text-[#8D95A0] hover:text-[#C74B92] transition disabled:opacity-40 disabled:cursor-not-allowed">
+                    class="p-1 rounded hover:bg-black/5 dark:hover:bg-white/10 text-[#8D95A0] dark:text-[#B8C4D6] hover:text-[#C74B92] transition disabled:opacity-40 disabled:cursor-not-allowed">
                     <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M10.5 3L5.5 8L10.5 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
@@ -951,7 +953,7 @@
                     LAPORAN KEUANGAN TAHUN 2026
                 </h1>
                 <button id="report-next-year-button" type="button" onclick="changeYear(1)" aria-label="Tahun Berikutnya"
-                    class="p-1 rounded hover:bg-black/5 dark:hover:bg-white/10 text-[#8D95A0] hover:text-[#C74B92] transition disabled:opacity-40 disabled:cursor-not-allowed">
+                    class="p-1 rounded hover:bg-black/5 dark:hover:bg-white/10 text-[#8D95A0] dark:text-[#B8C4D6] hover:text-[#C74B92] transition disabled:opacity-40 disabled:cursor-not-allowed">
                     <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M5.5 3L10.5 8L5.5 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
