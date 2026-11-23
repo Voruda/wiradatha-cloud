@@ -2442,7 +2442,13 @@ let isAuthenticated = false;
                     const extension = imageFile.name.split('.').pop().toLowerCase().replace(/[^a-z0-9]/g, '') || 'image';
                     const imagePath = `${activeBusinessId}/${savedProductId}/${crypto.randomUUID()}.${extension}`;
                     const { error: uploadError } = await supabaseClient.storage.from('product-images').upload(imagePath, imageFile, { upsert: true, contentType: imageFile.type });
-                    if (uploadError) { showToast(`Gambar gagal diunggah: ${uploadError.message}`, 'error'); return; }
+                    if (uploadError) {
+                        const uploadMessage = /bucket not found/i.test(uploadError.message)
+                            ? 'Bucket "product-images" belum tersedia. Buat bucket tersebut di Supabase Storage dan atur akses/policy upload.'
+                            : `Gambar gagal diunggah: ${uploadError.message}`;
+                        showToast(uploadMessage, 'error');
+                        return;
+                    }
                     const { data: publicUrl } = supabaseClient.storage.from('product-images').getPublicUrl(imagePath);
                     const { error: imageUpdateError } = await supabaseClient.from('products').update({ image_url: publicUrl.publicUrl }).eq('id', savedProductId);
                     if (imageUpdateError) { showToast(`Gambar tersimpan, tetapi tautan gagal disimpan: ${imageUpdateError.message}`, 'error'); return; }
