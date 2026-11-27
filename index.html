@@ -2108,13 +2108,13 @@ let isAuthenticated = false;
         }
 
         function showFinanceReport() {
-            document.getElementById('app-main').classList.add('hidden');
+            hideAllWorkspaceScreens();
             document.getElementById('finance-report-screen').classList.remove('hidden');
             renderFinanceReport();
         }
 
         function showMainScreen() {
-            document.getElementById('finance-report-screen').classList.add('hidden');
+            hideAllWorkspaceScreens();
             document.getElementById('app-main').classList.remove('hidden');
         }
 
