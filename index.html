@@ -3079,6 +3079,9 @@ window.addEventListener('DOMContentLoaded', async () => {
     loadCustomCategories();
             loadSprintFeatureData();
 
+    document.getElementById('login-form').addEventListener('submit', async (event) => {
+        event.preventDefault();
+
         const email = document.getElementById('login-email').value.trim();
         const password = document.getElementById('login-password').value;
 
