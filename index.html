@@ -1571,8 +1571,7 @@ let isAuthenticated = false;
 
             if (!memberships.length) {
                 document.getElementById('business-section').classList.remove('hidden');
-                document.getElementById('app-main').classList.add('hidden');
-                document.getElementById('finance-report-screen').classList.add('hidden');
+                hideAllWorkspaceScreens();
                 document.getElementById('business-form').classList.remove('hidden');
                 showToast('Create a business before adding products.', 'info');
                 return;
@@ -1580,6 +1579,7 @@ let isAuthenticated = false;
 
             activeBusinessId = activeBusinessId || memberships[0].business_id;
             document.getElementById('business-section').classList.add('hidden');
+            hideAllWorkspaceScreens();
             document.getElementById('app-main').classList.remove('hidden');
             document.getElementById('business-form').classList.add('hidden');
 
@@ -2070,6 +2070,8 @@ let isAuthenticated = false;
             document.getElementById('business-form').classList.add('hidden');
             document.getElementById('app-main').classList.add('hidden');
             document.getElementById('finance-report-screen').classList.add('hidden');
+            document.getElementById('returns-screen').classList.add('hidden');
+            document.getElementById('dp-orders-screen').classList.add('hidden');
             updateAuthControls(false);
             renderInventoryTable();
             renderDashboard();
