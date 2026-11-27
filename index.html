@@ -299,8 +299,20 @@
         }
 
         main section,
-        #finance-report-screen {
+        #finance-report-screen,
+        #returns-screen,
+        #dp-orders-screen {
             letter-spacing: 0;
+        }
+
+        #returns-table-body tr,
+        #dp-orders-table-body tr {
+            transition: background-color 0.12s ease;
+        }
+
+        #returns-table-body tr:hover,
+        #dp-orders-table-body tr:hover {
+            background: rgba(199, 75, 146, 0.045);
         }
 
         #inventory-table-body tr {
@@ -341,7 +353,9 @@
             }
 
             #app-main,
-            #finance-report-screen {
+            #finance-report-screen,
+            #returns-screen,
+            #dp-orders-screen {
                 gap: 20px;
                 padding: 20px 16px 28px !important;
             }
@@ -374,7 +388,9 @@
             }
 
             #app-main button:not(.mini-step-btn),
-            #finance-report-screen button {
+            #finance-report-screen button,
+            #returns-screen button,
+            #dp-orders-screen button {
                 min-height: 44px;
             }
 
@@ -558,7 +574,15 @@
                 </button>
             </div>
 
-            <div class="flex items-center gap-2 sm:gap-3">
+            <div class="flex flex-wrap items-center justify-end gap-2">
+                <button type="button" onclick="showReturnsScreen()"
+                    class="rounded-[10px] app-input px-3 py-2 text-[11px] sm:text-[12px] font-semibold hover:border-[#C74B92] transition">
+                    Komplain &amp; Retur (<span id="nav-returns-count">0</span>)
+                </button>
+                <button type="button" onclick="showDpOrdersScreen()"
+                    class="rounded-[10px] app-input px-3 py-2 text-[11px] sm:text-[12px] font-semibold hover:border-[#C74B92] transition">
+                    Pesanan DP (<span id="nav-dp-count">0</span>)
+                </button>
                 <button type="button" onclick="showFinanceReport()"
                     class="rounded-[10px] bg-[#C74B92] px-3 py-2 text-[11px] sm:text-[12px] font-semibold text-white hover:bg-[#B23D80] transition">
                     Laporan Keuangan
@@ -950,6 +974,58 @@
 
     </main>
 
+    <!-- ==================== ARSIP KOMPLAIN & RETUR ==================== -->
+    <section id="returns-screen" class="hidden max-w-[1380px] w-full mx-auto px-4 sm:px-8 pt-5 pb-10 flex-1 space-y-5">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+            <button type="button" onclick="showMainScreen()" class="app-input rounded-[10px] px-3 py-2 text-[12px] font-semibold">&larr; Kembali ke Ringkasan</button>
+            <h1 class="text-[14px] font-bold uppercase tracking-[0.02em] text-[#8E95A0]">ARSIP BUKTI KOMPLAIN &amp; RETUR</h1>
+        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            <div class="lg:col-span-4 app-card rounded-[20px] p-6">
+                <h2 class="mb-1 text-[17px] font-bold">Catat Komplain / Retur</h2>
+                <p class="mb-5 text-[12px] text-[#7D8694]">Simpan nomor pesanan, kendala, status klaim, dan bukti gambar.</p>
+                <form id="return-form" class="space-y-4">
+                    <div><label for="return-order-id" class="mb-1.5 block text-[12.5px] font-medium">No. Pesanan / Resi</label><input id="return-order-id" required placeholder="Contoh: SPXID04928172" class="app-input w-full rounded-[10px] px-3.5 py-2.5 text-[13px]"></div>
+                    <div><label for="return-product-name" class="mb-1.5 block text-[12.5px] font-medium">Produk Terkait</label><input id="return-product-name" list="return-products-datalist" required placeholder="Nama produk" class="app-input w-full rounded-[10px] px-3.5 py-2.5 text-[13px]"><datalist id="return-products-datalist"></datalist></div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div><label for="return-channel" class="mb-1.5 block text-[12.5px] font-medium">Kanal</label><select id="return-channel" class="app-input w-full rounded-[10px] px-3 py-2.5 text-[13px]"><option value="Online">Online</option><option value="Offline">Offline</option></select></div>
+                        <div><label for="return-status" class="mb-1.5 block text-[12.5px] font-medium">Status</label><select id="return-status" class="app-input w-full rounded-[10px] px-3 py-2.5 text-[13px]"><option value="Proses">Proses</option><option value="Selesai">Selesai</option></select></div>
+                    </div>
+                    <div><label for="return-notes" class="mb-1.5 block text-[12.5px] font-medium">Catatan Kendala</label><textarea id="return-notes" rows="3" required class="app-input w-full rounded-[10px] px-3.5 py-2.5 text-[13px]" placeholder="Uraikan kendala, kemasan, atau status klaim..."></textarea></div>
+                    <div><label for="return-proof-file" class="mb-1.5 block text-[12.5px] font-medium">Foto Bukti (maks. 2 MB)</label><input id="return-proof-file" type="file" accept="image/*" class="app-input w-full rounded-[10px] px-3 py-2 text-[12px]"><p id="return-proof-status" class="mt-1 text-[11px] text-[#7D8694]"></p></div>
+                    <button type="submit" class="btn-catalog-gradient w-full rounded-[12px] py-3 text-[13.5px] font-semibold text-white">Simpan Arsip Retur</button>
+                </form>
+            </div>
+            <div class="lg:col-span-8 app-card rounded-[20px] p-6">
+                <div class="mb-4 flex items-center justify-between"><div><h2 class="text-[17px] font-bold">Daftar Komplain &amp; Klaim</h2><p class="mt-1 text-[12px] text-[#7D8694]">Bukti tersimpan dengan catatan dan status.</p></div><select id="return-filter-status" onchange="renderReturnsTable()" class="app-input rounded-[8px] px-3 py-2 text-[12.5px]"><option value="ALL">Semua Status</option><option value="Proses">Proses</option><option value="Selesai">Selesai</option></select></div>
+                <div class="overflow-x-auto"><table class="w-full min-w-[650px] text-left border-collapse"><thead><tr class="border-b app-divider text-[11px] font-bold uppercase text-[#7D8694]"><th class="pb-3">Pesanan &amp; Produk</th><th class="pb-3 px-3">Catatan</th><th class="pb-3 px-3 text-center">Bukti</th><th class="pb-3 px-3 text-center">Status</th><th class="pb-3 pl-3 text-center">Aksi</th></tr></thead><tbody id="returns-table-body" class="divide-y app-divider text-[13px]"></tbody></table></div>
+                <div id="returns-empty-state" class="hidden py-10 text-center text-[13px] text-[#7D8694]">Belum ada catatan komplain atau retur.</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== CATATAN PESANAN DP ==================== -->
+    <section id="dp-orders-screen" class="hidden max-w-[1380px] w-full mx-auto px-4 sm:px-8 pt-5 pb-10 flex-1 space-y-5">
+        <div class="flex flex-wrap items-center justify-between gap-3"><button type="button" onclick="showMainScreen()" class="app-input rounded-[10px] px-3 py-2 text-[12px] font-semibold">&larr; Kembali ke Ringkasan</button><h1 class="text-[14px] font-bold uppercase tracking-[0.02em] text-[#8E95A0]">CATATAN PESANAN KHUSUS &amp; DP</h1></div>
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            <div class="lg:col-span-4 app-card rounded-[20px] p-6">
+                <h2 class="mb-1 text-[17px] font-bold">Tambah Pesanan DP</h2><p class="mb-5 text-[12px] text-[#7D8694]">Catatan DP bukan pemrosesan pembayaran.</p>
+                <form id="dp-order-form" class="space-y-4">
+                    <div><label for="dp-customer-name" class="mb-1.5 block text-[12.5px] font-medium">Nama Pemesan &amp; Kontak</label><input id="dp-customer-name" required placeholder="Contoh: Ibu Rina (0812-xxxx)" class="app-input w-full rounded-[10px] px-3.5 py-2.5 text-[13px]"></div>
+                    <div><label for="dp-item-detail" class="mb-1.5 block text-[12.5px] font-medium">Detail Pesanan</label><input id="dp-item-detail" required placeholder="Contoh: 2x Jaket Navy XL" class="app-input w-full rounded-[10px] px-3.5 py-2.5 text-[13px]"></div>
+                    <div class="grid grid-cols-2 gap-3"><div><label for="dp-total-price" class="mb-1.5 block text-[12.5px] font-medium">Total Harga</label><input id="dp-total-price" type="number" min="0" step="1000" required class="app-input w-full rounded-[10px] px-3.5 py-2.5 text-[13px]"></div><div><label for="dp-paid-amount" class="mb-1.5 block text-[12.5px] font-medium">Nominal DP</label><input id="dp-paid-amount" type="number" min="0" step="1000" required class="app-input w-full rounded-[10px] px-3.5 py-2.5 text-[13px]"></div></div>
+                    <div class="grid grid-cols-2 gap-3"><div><label for="dp-due-date" class="mb-1.5 block text-[12.5px] font-medium">Tanggal Target</label><input id="dp-due-date" type="date" class="app-input w-full rounded-[10px] px-3 py-2.5 text-[13px]"></div><div><label for="dp-channel" class="mb-1.5 block text-[12.5px] font-medium">Kanal</label><select id="dp-channel" class="app-input w-full rounded-[10px] px-3 py-2.5 text-[13px]"><option value="Offline">Offline</option><option value="Online">Online</option><option value="WhatsApp">WhatsApp</option></select></div></div>
+                    <button type="submit" class="btn-catalog-gradient w-full rounded-[12px] py-3 text-[13.5px] font-semibold text-white">Simpan Pesanan DP</button>
+                </form>
+            </div>
+            <div class="lg:col-span-8 app-card rounded-[20px] p-6">
+                <div class="mb-4 flex items-center justify-between gap-3"><div><h2 class="text-[17px] font-bold">Daftar Pesanan DP</h2><p class="mt-1 text-[12px] text-[#7D8694]">Tandai lunas saat pelanggan melunasi sisa tagihan.</p></div><div class="text-right"><p class="text-[11px] text-[#7D8694]">Total Sisa:</p><p id="dp-total-remaining" class="font-bold text-[#C74B92]">Rp 0,00</p></div></div>
+                <div class="overflow-x-auto"><table class="w-full min-w-[660px] text-left border-collapse"><thead><tr class="border-b app-divider text-[11px] font-bold uppercase text-[#7D8694]"><th class="pb-3">Pemesan &amp; Item</th><th class="pb-3 px-3 text-right">Total / DP</th><th class="pb-3 px-3 text-right">Sisa</th><th class="pb-3 px-3 text-center">Status</th><th class="pb-3 pl-3 text-center">Aksi</th></tr></thead><tbody id="dp-orders-table-body" class="divide-y app-divider text-[13px]"></tbody></table></div>
+                <div id="dp-orders-empty-state" class="hidden py-10 text-center text-[13px] text-[#7D8694]">Belum ada catatan pesanan khusus / DP.</div>
+            </div>
+        </div>
+    </section>
+
     <section id="finance-report-screen" class="hidden max-w-[1380px] w-full mx-auto px-4 sm:px-8 pt-5 pb-10 flex-1 space-y-5">
         <div class="flex flex-wrap items-center justify-between gap-3">
             <button type="button" onclick="showMainScreen()"
@@ -1273,7 +1349,9 @@ let isAuthenticated = false;
             activeYear: MIN_SUMMARY_YEAR,
             activeSummaryMonth: new Date().getMonth(),
             lastAction: null,
-            dashboardTotals: null
+            dashboardTotals: null,
+            returns: [],
+            dpOrders: []
         };
 
         function renderCategoryFilters() {
@@ -1629,6 +1707,191 @@ let isAuthenticated = false;
             state.dashboardTotals = { totalSold, omzet, profit, onlineSold, offlineSold, monthlyTotals };
             renderDashboard();
         }
+        // =========================================================================
+        // SPRINT 2: KOMPLAIN/RETUR & PESANAN DP
+        // =========================================================================
+        const RETURNS_KEY = 'wiradatha_returns_v1';
+        const DP_KEY = 'wiradatha_dp_orders_v1';
+
+        function hideAllWorkspaceScreens() {
+            document.getElementById('app-main').classList.add('hidden');
+            document.getElementById('finance-report-screen').classList.add('hidden');
+            document.getElementById('returns-screen').classList.add('hidden');
+            document.getElementById('dp-orders-screen').classList.add('hidden');
+        }
+
+        function showMainScreen() {
+            hideAllWorkspaceScreens();
+            document.getElementById('app-main').classList.remove('hidden');
+        }
+
+        function showReturnsScreen() {
+            hideAllWorkspaceScreens();
+            document.getElementById('returns-screen').classList.remove('hidden');
+            renderReturnsTable();
+        }
+
+        function showDpOrdersScreen() {
+            hideAllWorkspaceScreens();
+            document.getElementById('dp-orders-screen').classList.remove('hidden');
+            renderDpOrdersTable();
+        }
+
+        function showFinanceReport() {
+            hideAllWorkspaceScreens();
+            document.getElementById('finance-report-screen').classList.remove('hidden');
+            renderFinanceReport();
+        }
+
+        function storageKey(base) {
+            return `${base}_${activeBusinessId || 'default'}`;
+        }
+
+        function loadSprintFeatureData() {
+            try {
+                state.returns = JSON.parse(localStorage.getItem(storageKey(RETURNS_KEY)) || '[]');
+                state.dpOrders = JSON.parse(localStorage.getItem(storageKey(DP_KEY)) || '[]');
+            } catch (_) { state.returns = []; state.dpOrders = []; }
+            if (!Array.isArray(state.returns)) state.returns = [];
+            if (!Array.isArray(state.dpOrders)) state.dpOrders = [];
+            updateSprintFeatureBadges();
+            renderReturnsTable();
+            renderDpOrdersTable();
+        }
+
+        function saveSprintFeatureData() {
+            try {
+                localStorage.setItem(storageKey(RETURNS_KEY), JSON.stringify(state.returns));
+                localStorage.setItem(storageKey(DP_KEY), JSON.stringify(state.dpOrders));
+            } catch (error) { showToast(`Data tambahan tidak dapat disimpan: ${error.message}`, 'error'); }
+        }
+
+        function updateSprintFeatureBadges() {
+            const returnsCount = state.returns.filter(item => item.status !== 'Selesai').length;
+            const dpCount = state.dpOrders.filter(item => item.status !== 'Lunas').length;
+            document.getElementById('nav-returns-count').textContent = returnsCount;
+            document.getElementById('nav-dp-count').textContent = dpCount;
+        }
+
+        function readImageFile(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        document.getElementById('return-proof-file').addEventListener('change', function () {
+            const file = this.files[0];
+            const status = document.getElementById('return-proof-status');
+            if (!file) { status.textContent = ''; return; }
+            if (!file.type.startsWith('image/') || file.size > 2 * 1024 * 1024) { this.value = ''; status.textContent = 'Pilih gambar maksimal 2 MB.'; return; }
+            status.textContent = `${file.name} (${Math.ceil(file.size / 1024)} KB)`;
+        });
+
+        document.getElementById('return-form').addEventListener('submit', async function (event) {
+            event.preventDefault();
+            const orderNumber = document.getElementById('return-order-id').value.trim();
+            const productName = document.getElementById('return-product-name').value.trim();
+            const channel = document.getElementById('return-channel').value;
+            const status = document.getElementById('return-status').value;
+            const notes = document.getElementById('return-notes').value.trim();
+            const file = document.getElementById('return-proof-file').files[0];
+            if (!orderNumber || !productName || !notes) { showToast('Lengkapi nomor pesanan, produk, dan catatan.', 'error'); return; }
+            if (file && (!file.type.startsWith('image/') || file.size > 2 * 1024 * 1024)) { showToast('Bukti harus berupa gambar maksimal 2 MB.', 'error'); return; }
+            let proofUrl = null;
+            if (file) proofUrl = await readImageFile(file);
+            const record = { id: crypto.randomUUID(), orderNumber, productName, channel, status, notes, proofUrl, createdAt: new Date().toISOString() };
+            state.returns.unshift(record);
+            saveSprintFeatureData();
+            updateSprintFeatureBadges();
+            renderReturnsTable();
+            this.reset();
+            document.getElementById('return-proof-status').textContent = '';
+            showToast(`Arsip komplain pesanan ${orderNumber} tersimpan.`, 'success');
+        });
+
+        function updateReturnStatus(id, status) {
+            const item = state.returns.find(record => String(record.id) === String(id));
+            if (!item) return;
+            item.status = status;
+            saveSprintFeatureData(); updateSprintFeatureBadges(); renderReturnsTable();
+        }
+
+        function deleteReturnClaim(id) {
+            openConfirmModal('Hapus Catatan Retur?', 'Catatan dan bukti komplain ini akan dihapus.', () => {
+                state.returns = state.returns.filter(record => String(record.id) !== String(id));
+                saveSprintFeatureData(); updateSprintFeatureBadges(); renderReturnsTable();
+                showToast('Catatan komplain/retur dihapus.', 'info');
+            });
+        }
+
+        function renderReturnsTable() {
+            const filter = document.getElementById('return-filter-status')?.value || 'ALL';
+            const rows = state.returns.filter(item => filter === 'ALL' || item.status === filter);
+            const tbody = document.getElementById('returns-table-body');
+            const empty = document.getElementById('returns-empty-state');
+            tbody.innerHTML = '';
+            empty.classList.toggle('hidden', rows.length > 0);
+            rows.forEach(item => {
+                const statusClass = item.status === 'Selesai' ? 'bg-[#E2F4E9] text-[#18A94B]' : 'bg-[#F4F1D5] text-[#D89A2B]';
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td class="py-3.5 pr-3 align-top"><div class="font-bold text-[#C74B92]">${escapeHtml(item.orderNumber)}</div><div class="mt-0.5 font-semibold">${escapeHtml(item.productName)}</div><span class="cat-badge mt-1 inline-block rounded px-2 py-[2px] text-[10.5px]">${escapeHtml(item.channel)}</span></td><td class="max-w-[260px] py-3.5 px-3 align-top">${escapeHtml(item.notes)}</td><td class="py-3.5 px-3 text-center">${item.proofUrl ? `<button type="button" onclick="openProductImage('${escapeHtml(item.proofUrl)}','Bukti ${escapeHtml(item.orderNumber)}')"><img src="${escapeHtml(item.proofUrl)}" alt="Bukti komplain" class="mx-auto h-12 w-12 rounded-md object-cover"></button>` : '<span class="text-[11px] text-[#8C95A2]">Tanpa bukti</span>'}</td><td class="py-3.5 px-3 text-center"><select onchange="updateReturnStatus('${String(item.id)}', this.value)" class="rounded-[6px] px-2 py-1 text-[11.5px] font-semibold ${statusClass}"><option value="Proses" ${item.status === 'Proses' ? 'selected' : ''}>Proses</option><option value="Selesai" ${item.status === 'Selesai' ? 'selected' : ''}>Selesai</option></select></td><td class="py-3.5 pl-3 text-center"><button type="button" onclick="deleteReturnClaim('${String(item.id)}')" class="rounded-[7px] border border-red-200 bg-red-50 px-2.5 py-1 text-[11px] font-semibold text-red-600">Hapus</button></td>`;
+                tbody.appendChild(tr);
+            });
+        }
+
+        document.getElementById('dp-order-form').addEventListener('submit', function (event) {
+            event.preventDefault();
+            const customerName = document.getElementById('dp-customer-name').value.trim();
+            const itemDetail = document.getElementById('dp-item-detail').value.trim();
+            const totalPrice = Number(document.getElementById('dp-total-price').value) || 0;
+            const paidAmount = Number(document.getElementById('dp-paid-amount').value) || 0;
+            const dueDate = document.getElementById('dp-due-date').value || null;
+            const channel = document.getElementById('dp-channel').value;
+            if (!customerName || !itemDetail || totalPrice <= 0) { showToast('Lengkapi pemesan, detail, dan total harga.', 'error'); return; }
+            if (paidAmount < 0 || paidAmount > totalPrice) { showToast('DP harus dari Rp 0 sampai total harga pesanan.', 'error'); return; }
+            state.dpOrders.unshift({ id: crypto.randomUUID(), customerName, itemDetail, totalPrice, paidAmount, dueDate, channel, status: paidAmount >= totalPrice ? 'Lunas' : 'Belum Lunas' });
+            saveSprintFeatureData(); updateSprintFeatureBadges(); renderDpOrdersTable(); this.reset();
+            showToast(`Pesanan DP atas nama ${customerName} tersimpan.`, 'success');
+        });
+
+        function settleDpOrder(id) {
+            const order = state.dpOrders.find(item => String(item.id) === String(id));
+            if (!order) return;
+            order.paidAmount = order.totalPrice;
+            order.status = 'Lunas';
+            saveSprintFeatureData(); updateSprintFeatureBadges(); renderDpOrdersTable();
+            showToast(`Pesanan ${order.customerName} ditandai lunas.`, 'success');
+        }
+
+        function deleteDpOrder(id) {
+            openConfirmModal('Hapus Pesanan DP?', 'Catatan pesanan khusus ini akan dihapus.', () => {
+                state.dpOrders = state.dpOrders.filter(item => String(item.id) !== String(id));
+                saveSprintFeatureData(); updateSprintFeatureBadges(); renderDpOrdersTable();
+                showToast('Catatan pesanan DP dihapus.', 'info');
+            });
+        }
+
+        function renderDpOrdersTable() {
+            const tbody = document.getElementById('dp-orders-table-body');
+            const empty = document.getElementById('dp-orders-empty-state');
+            const totalRemaining = state.dpOrders.reduce((sum, order) => sum + Math.max(0, (Number(order.totalPrice) || 0) - (Number(order.paidAmount) || 0)), 0);
+            document.getElementById('dp-total-remaining').textContent = formatTableCurrency(totalRemaining);
+            tbody.innerHTML = '';
+            empty.classList.toggle('hidden', state.dpOrders.length > 0);
+            state.dpOrders.forEach(order => {
+                const total = Number(order.totalPrice) || 0;
+                const paid = Number(order.paidAmount) || 0;
+                const remaining = Math.max(0, total - paid);
+                const isPaid = remaining === 0 || order.status === 'Lunas';
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td class="py-3.5 pr-3 align-top"><div class="font-semibold">${escapeHtml(order.customerName)}</div><div class="mt-0.5 text-[12px] text-[#5D6673]">${escapeHtml(order.itemDetail)}</div><div class="mt-1 flex gap-2"><span class="cat-badge rounded px-2 py-[2px] text-[10.5px]">${escapeHtml(order.channel)}</span>${order.dueDate ? `<span class="text-[11px] text-[#8C95A2]">Target: ${escapeHtml(order.dueDate)}</span>` : ''}</div></td><td class="py-3.5 px-3 text-right whitespace-nowrap"><div class="font-semibold">${formatTableCurrency(total)}</div><div class="text-[11px] text-[#18A94B]">DP: ${formatTableCurrency(paid)}</div></td><td class="py-3.5 px-3 text-right whitespace-nowrap font-bold ${isPaid ? 'text-[#18A94B]' : 'text-[#C74B92]'}">${formatTableCurrency(remaining)}</td><td class="py-3.5 px-3 text-center"><span class="rounded-[6px] px-2.5 py-1 text-[11px] font-semibold ${isPaid ? 'bg-[#E2F4E9] text-[#18A94B]' : 'bg-[#F4F1D5] text-[#D89A2B]'}">${isPaid ? 'Lunas' : 'Belum Lunas'}</span></td><td class="py-3.5 pl-3 text-center whitespace-nowrap">${!isPaid ? `<button type="button" onclick="settleDpOrder('${String(order.id)}')" class="mr-1 rounded-[7px] bg-[#18A94B] px-2.5 py-1 text-[11px] font-semibold text-white">Lunasi</button>` : ''}<button type="button" onclick="deleteDpOrder('${String(order.id)}')" class="rounded-[7px] border border-red-200 bg-red-50 px-2.5 py-1 text-[11px] font-semibold text-red-600">Hapus</button></td>`;
+                tbody.appendChild(tr);
+            });
+        }
+
         // Load persisted state if available
         function loadState() {
             try {
@@ -1797,6 +2060,8 @@ let isAuthenticated = false;
             state.products = [];
             state.dashboardTotals = null;
             state.lastAction = null;
+            state.returns = [];
+            state.dpOrders = [];
             saveState();
 
             document.getElementById('login-password').value = '';
@@ -1936,9 +2201,15 @@ let isAuthenticated = false;
             document.getElementById('report-previous-year-button').disabled = state.activeYear <= MIN_SUMMARY_YEAR;
             document.getElementById('report-next-year-button').disabled = state.activeYear >= MAX_SUMMARY_YEAR;
             document.getElementById('report-total-omzet').textContent = formatTableCurrency(totals.omzet);
+            if (document.getElementById('report-channel-omzet-split')) {
+                document.getElementById('report-channel-omzet-split').textContent = `Online: ${formatTableCurrency(totals.onlineOmzet || 0)} | Offline: ${formatTableCurrency(totals.offlineOmzet || 0)}`;
+            }
             document.getElementById('report-total-profit').textContent = formatTableCurrency(totals.profit);
             document.getElementById('report-total-margin').textContent = `${marginPct}%`;
             document.getElementById('report-total-sold').textContent = `${totals.totalSold} pcs`;
+            if (document.getElementById('report-channel-qty-split')) {
+                document.getElementById('report-channel-qty-split').textContent = `Online: ${totals.onlineSold || 0} pcs | Offline: ${totals.offlineSold || 0} pcs`;
+            }
             renderAnnualFinanceChart(monthlyTotals);
             document.getElementById('report-monthly-body').innerHTML = REPORT_MONTHS.map((monthName, index) => {
                 const month = monthlyTotals[index] || { totalSold: 0, omzet: 0, profit: 0 };
@@ -2806,9 +3077,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     initTheme();
     initAppZoom();
     loadCustomCategories();
-
-    document.getElementById('login-form').addEventListener('submit', async (event) => {
-        event.preventDefault();
+            loadSprintFeatureData();
 
         const email = document.getElementById('login-email').value.trim();
         const password = document.getElementById('login-password').value;
